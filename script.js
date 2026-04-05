@@ -111,7 +111,6 @@ async function saveGame(event) {
         updated_at: new Date().toISOString()
     };
     
-    // Validasi
     if (!game.title) {
         showNotification('Game title is required!', 'error');
         return;
@@ -119,7 +118,6 @@ async function saveGame(event) {
     
     try {
         if (id) {
-            // Update game
             const { error } = await supabaseClient
                 .from('games')
                 .update(game)
@@ -128,7 +126,6 @@ async function saveGame(event) {
             if (error) throw error;
             showNotification('✅ Game updated successfully!', 'success');
         } else {
-            // Insert new game
             const { error } = await supabaseClient
                 .from('games')
                 .insert([{ 
@@ -215,7 +212,7 @@ function renderLibrary() {
                     ${game.tags ? game.tags.split(',').map(t => `<span class="tag">#${escapeHtml(t.trim())}</span>`).join('') : ''}
                 </div>
                 <div style="margin-top: 8px;">
-                    <i class="fas ${getStatusIcon(game.status)}"></i> 
+                    <i class="fas ${game.status === 'completed' ? 'fa-trophy' : (game.status === 'playing' ? 'fa-play-circle' : 'fa-book')}"></i> 
                     <span style="text-transform: capitalize;">${game.status || 'backlog'}</span>
                 </div>
                 <div class="card-actions">
@@ -230,7 +227,6 @@ function renderLibrary() {
         </div>
     `).join('');
     
-    // Attach event listeners
     document.querySelectorAll('.edit-game').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -246,37 +242,21 @@ function renderLibrary() {
     });
 }
 
-function getStatusIcon(status) {
-    switch(status) {
-        case 'completed': return 'fa-trophy';
-        case 'playing': return 'fa-play-circle';
-        default: return 'fa-book';
-    }
-}
-
 function updateDashboard() {
     const total = gamesData.length;
     const completed = gamesData.filter(g => g.status === 'completed').length;
     const totalHours = gamesData.reduce((sum, g) => sum + (g.hours_played || 0), 0);
     const avgRating = total > 0 ? (gamesData.reduce((sum, g) => sum + (g.rating || 0), 0) / total).toFixed(1) : 0;
     
-    // Update stats cards
-    const totalGamesEl = document.getElementById('totalGames');
-    const completedGamesEl = document.getElementById('completedGames');
-    const totalHoursEl = document.getElementById('totalHours');
-    const avgRatingEl = document.getElementById('avgRating');
-    
-    if (totalGamesEl) totalGamesEl.innerText = total;
-    if (completedGamesEl) completedGamesEl.innerText = completed;
-    if (totalHoursEl) totalHoursEl.innerText = totalHours;
-    if (avgRatingEl) avgRatingEl.innerText = avgRating;
+    document.getElementById('totalGames').innerText = total;
+    document.getElementById('completedGames').innerText = completed;
+    document.getElementById('totalHours').innerText = totalHours;
+    document.getElementById('avgRating').innerText = avgRating;
 
-    // Update charts
     updateCharts();
 }
 
 function updateCharts() {
-    // Genre stats untuk chart
     const genreCount = {};
     gamesData.forEach(g => {
         if (g.genre) genreCount[g.genre] = (genreCount[g.genre] || 0) + 1;
@@ -284,7 +264,6 @@ function updateCharts() {
     
     const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
     
-    // Genre Chart
     const genreCtx = document.getElementById('genreChart')?.getContext('2d');
     if (genreCtx) {
         if (genreChart) genreChart.destroy();
@@ -297,17 +276,10 @@ function updateCharts() {
                     backgroundColor: ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#10b981']
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-primary') } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: true }
         });
     }
     
-    // Completion Chart
     const completionCtx = document.getElementById('completionChart')?.getContext('2d');
     if (completionCtx) {
         const completionData = [
@@ -320,23 +292,12 @@ function updateCharts() {
             type: 'bar',
             data: {
                 labels: ['🏆 Completed', '🎮 Playing', '📚 Backlog'],
-                datasets: [{
-                    label: 'Number of Games',
-                    data: completionData,
-                    backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b']
-                }]
+                datasets: [{ label: 'Games', data: completionData, backgroundColor: '#8b5cf6' }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'top' }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: true }
         });
     }
     
-    // Rating Distribution Chart
     const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
     if (ratingCtx) {
         const ratingDist = [0, 0, 0, 0, 0];
@@ -347,23 +308,10 @@ function updateCharts() {
         ratingChart = new Chart(ratingCtx, {
             type: 'line',
             data: {
-                labels: ['★ 1', '★ 2', '★ 3', '★ 4', '★ 5'],
-                datasets: [{
-                    label: 'Games Count',
-                    data: ratingDist,
-                    borderColor: '#f59e0b',
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }]
+                labels: ['★1', '★2', '★3', '★4', '★5'],
+                datasets: [{ label: 'Count', data: ratingDist, borderColor: '#f59e0b', tension: 0.3, fill: true }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'top' }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: true }
         });
     }
 }
@@ -385,10 +333,6 @@ function updateFilters() {
             platforms.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
     }
 }
-
-// ============================================
-// MODAL FUNCTIONS
-// ============================================
 
 function openEditModal(id) {
     const game = gamesData.find(g => g.id == id);
@@ -439,7 +383,6 @@ function closeDeleteModal() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Game Tracker App Started');
     
-    // Tab switching
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -447,22 +390,16 @@ document.addEventListener('DOMContentLoaded', () => {
             link.classList.add('active');
             
             const tab = link.dataset.tab;
-            const dashboardSection = document.getElementById('dashboardSection');
-            const librarySection = document.getElementById('librarySection');
-            const pageTitle = document.getElementById('pageTitle');
-            
-            if (dashboardSection) dashboardSection.classList.toggle('active', tab === 'dashboard');
-            if (librarySection) librarySection.classList.toggle('active', tab === 'library');
-            if (pageTitle) pageTitle.innerText = tab === 'dashboard' ? '📊 Dashboard' : '🎮 Game Library';
+            document.getElementById('dashboardSection').classList.toggle('active', tab === 'dashboard');
+            document.getElementById('librarySection').classList.toggle('active', tab === 'library');
+            document.getElementById('pageTitle').innerText = tab === 'dashboard' ? '📊 Dashboard' : '🎮 Game Library';
             
             if (tab === 'library') renderLibrary();
         });
     });
     
-    // Dark mode toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
     if (darkModeToggle) {
-        // Load saved preference
         const savedDarkMode = localStorage.getItem('darkMode') === 'true';
         darkModeToggle.checked = savedDarkMode;
         if (savedDarkMode) document.body.classList.add('dark-mode');
@@ -470,27 +407,21 @@ document.addEventListener('DOMContentLoaded', () => {
         darkModeToggle.addEventListener('change', (e) => {
             document.body.classList.toggle('dark-mode', e.target.checked);
             localStorage.setItem('darkMode', e.target.checked);
-            // Refresh charts to update colors
             updateCharts();
         });
     }
     
-    // Add game button
-    const addGameBtn = document.getElementById('addGameBtn');
-    if (addGameBtn) {
-        addGameBtn.addEventListener('click', () => {
-            document.getElementById('modalTitle').innerText = '🎮 Add New Game';
-            document.getElementById('gameForm').reset();
-            document.getElementById('gameId').value = '';
-            document.getElementById('progress').value = 0;
-            document.getElementById('rating').value = 3;
-            document.getElementById('hours_played').value = 0;
-            document.getElementById('status').value = 'backlog';
-            document.getElementById('gameModal').style.display = 'flex';
-        });
-    }
+    document.getElementById('addGameBtn').addEventListener('click', () => {
+        document.getElementById('modalTitle').innerText = '🎮 Add New Game';
+        document.getElementById('gameForm').reset();
+        document.getElementById('gameId').value = '';
+        document.getElementById('progress').value = 0;
+        document.getElementById('rating').value = 3;
+        document.getElementById('hours_played').value = 0;
+        document.getElementById('status').value = 'backlog';
+        document.getElementById('gameModal').style.display = 'flex';
+    });
     
-    // Close modals when clicking outside or on close button
     document.querySelectorAll('.close-modal, .modal').forEach(el => {
         el.addEventListener('click', function(e) {
             if (e.target === this || e.target.classList.contains('close-modal')) {
@@ -500,47 +431,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Cancel delete button
-    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    document.getElementById('gameForm').addEventListener('submit', saveGame);
     
-    // Confirm delete button
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
+    document.getElementById('searchInput').addEventListener('input', () => renderLibrary());
+    document.getElementById('filterGenre').addEventListener('change', renderLibrary);
+    document.getElementById('filterPlatform').addEventListener('change', renderLibrary);
+    document.getElementById('filterRating').addEventListener('change', renderLibrary);
+    document.getElementById('filterStatus').addEventListener('change', renderLibrary);
     
-    // Save game form
-    const gameForm = document.getElementById('gameForm');
-    if (gameForm) gameForm.addEventListener('submit', saveGame);
-    
-    // Filters
-    const searchInput = document.getElementById('searchInput');
-    const filterGenre = document.getElementById('filterGenre');
-    const filterPlatform = document.getElementById('filterPlatform');
-    const filterRating = document.getElementById('filterRating');
-    const filterStatus = document.getElementById('filterStatus');
-    
-    if (searchInput) searchInput.addEventListener('input', () => renderLibrary());
-    if (filterGenre) filterGenre.addEventListener('change', renderLibrary);
-    if (filterPlatform) filterPlatform.addEventListener('change', renderLibrary);
-    if (filterRating) filterRating.addEventListener('change', renderLibrary);
-    if (filterStatus) filterStatus.addEventListener('change', renderLibrary);
-    
-    // Initial fetch
     fetchGames();
     
-    // Setup realtime subscription
     const gamesChannel = supabaseClient
         .channel('games-channel')
         .on('postgres_changes', 
             { event: '*', schema: 'public', table: 'games' }, 
-            () => {
-                console.log('🔄 Realtime update detected');
-                fetchGames();
-            }
+            () => fetchGames()
         )
-        .subscribe((status) => {
-            console.log('📡 Realtime subscription status:', status);
-        });
+        .subscribe();
     
     console.log('✅ App initialized successfully');
 });
