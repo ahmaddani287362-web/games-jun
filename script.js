@@ -5,8 +5,12 @@
 // CEK APAKAH SUDAH TERDEFINISI SEBELUMNYA
 if (typeof window.supabaseClient === 'undefined') {
     // Supabase Configuration (GANTI DENGAN CREDENTIAL ASLI ANDA)
-    const SUPABASE_URL = 'https://inwjlxiqxtztjtrttqke.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
+    const SUPABASE_URL = window.SUPABASE_URL || 'https://inwjlxiqxtztjtrttqke.supabase.co';
+const SUPABASE_KEY = window.SUPABASE_KEY || 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
+
+// Debug: cek apakah environment variables terbaca
+console.log('Supabase URL:', SUPABASE_URL ? '✅ Loaded' : '❌ Missing');
+console.log('Supabase Key:', SUPABASE_KEY ? '✅ Loaded' : '❌ Missing');
     
     // Gunakan nama variabel yang unik untuk menghindari konflik
     window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
