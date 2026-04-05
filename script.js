@@ -1,29 +1,31 @@
 // ============================================
-// WEB GAMES TRACKER - SUPABASE CONFIGURATION
+// WEB GAMES TRACKER - WITH SUPABASE
 // ============================================
 
-// CEK APAKAH SUDAH TERDEFINISI SEBELUMNYA
-if (typeof window.supabaseClient === 'undefined') {
-    // Supabase Configuration (GANTI DENGAN CREDENTIAL ASLI ANDA)
-    const SUPABASE_URL = window.SUPABASE_URL || 'https://inwjlxiqxtztjtrttqke.supabase.co';
-const SUPABASE_KEY = window.SUPABASE_KEY || 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
+// Inisialisasi Supabase dengan credentials yang sudah diset di HTML
+const SUPABASE_URL = window.SUPABASE_URL;
+const SUPABASE_KEY = window.SUPABASE_KEY;
 
-// Debug: cek apakah environment variables terbaca
-console.log('Supabase URL:', SUPABASE_URL ? '✅ Loaded' : '❌ Missing');
-console.log('Supabase Key:', SUPABASE_KEY ? '✅ Loaded' : '❌ Missing');
-    
-    // Gunakan nama variabel yang unik untuk menghindari konflik
-    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Cek apakah credentials tersedia
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('❌ Supabase credentials not found!');
+    alert('Error: Supabase credentials not configured. Please check your environment variables.');
 }
 
-const supabase = window.supabaseClient;
+// Buat client Supabase
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // State Management
 let currentEditId = null;
 let gamesData = [];
-let genreChart, completionChart, ratingChart;
+let genreChart = null;
+let completionChart = null;
+let ratingChart = null;
 
-// Helper: Escape HTML untuk keamanan
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -34,7 +36,6 @@ function escapeHtml(str) {
     });
 }
 
-// Render rating stars
 function renderStars(rating) {
     let stars = '';
     const fullStars = Math.floor(rating);
@@ -52,10 +53,31 @@ function renderStars(rating) {
     return stars;
 }
 
-// Fetch all games dari Supabase
+function showNotification(message, type = 'info') {
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
+
+// ============================================
+// SUPABASE CRUD OPERATIONS
+// ============================================
+
 async function fetchGames() {
     try {
-        const { data, error } = await supabase
+        console.log('🔄 Fetching games from Supabase...');
+        const { data, error } = await supabaseClient
             .from('games')
             .select('*')
             .order('created_at', { ascending: false });
@@ -63,16 +85,90 @@ async function fetchGames() {
         if (error) throw error;
         
         gamesData = data || [];
+        console.log(`✅ Loaded ${gamesData.length} games`);
         renderLibrary();
         updateDashboard();
         updateFilters();
     } catch (error) {
-        console.error('Error fetching games:', error);
-        showNotification('Gagal memuat data games', 'error');
+        console.error('❌ Error fetching games:', error);
+        showNotification('Failed to load games: ' + error.message, 'error');
     }
 }
 
-// Render library/games grid
+async function saveGame(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('gameId')?.value;
+    const game = {
+        title: document.getElementById('title')?.value,
+        platform: document.getElementById('platform')?.value || null,
+        genre: document.getElementById('genre')?.value || null,
+        tags: document.getElementById('tags')?.value || null,
+        progress: parseInt(document.getElementById('progress')?.value || 0),
+        rating: parseFloat(document.getElementById('rating')?.value || 3),
+        hours_played: parseFloat(document.getElementById('hours_played')?.value || 0),
+        status: document.getElementById('status')?.value,
+        updated_at: new Date().toISOString()
+    };
+    
+    // Validasi
+    if (!game.title) {
+        showNotification('Game title is required!', 'error');
+        return;
+    }
+    
+    try {
+        if (id) {
+            // Update game
+            const { error } = await supabaseClient
+                .from('games')
+                .update(game)
+                .eq('id', id);
+            
+            if (error) throw error;
+            showNotification('✅ Game updated successfully!', 'success');
+        } else {
+            // Insert new game
+            const { error } = await supabaseClient
+                .from('games')
+                .insert([{ 
+                    ...game, 
+                    created_at: new Date().toISOString() 
+                }]);
+            
+            if (error) throw error;
+            showNotification('✅ Game added successfully!', 'success');
+        }
+        
+        closeModal();
+        fetchGames();
+    } catch (error) {
+        console.error('Error saving game:', error);
+        showNotification('Failed to save game: ' + error.message, 'error');
+    }
+}
+
+async function deleteGame(id) {
+    try {
+        const { error } = await supabaseClient
+            .from('games')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showNotification('🗑️ Game deleted successfully!', 'success');
+        fetchGames();
+    } catch (error) {
+        console.error('Error deleting game:', error);
+        showNotification('Failed to delete game: ' + error.message, 'error');
+    }
+}
+
+// ============================================
+// RENDER FUNCTIONS
+// ============================================
+
 function renderLibrary() {
     const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const genreFilter = document.getElementById('filterGenre')?.value || '';
@@ -91,7 +187,12 @@ function renderLibrary() {
     if (!grid) return;
     
     if (!filtered.length) {
-        grid.innerHTML = '<div class="empty-state">✨ No games found. Add your first game!</div>';
+        grid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-gamepad" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>✨ No games found. Add your first game!</p>
+            </div>
+        `;
         return;
     }
     
@@ -107,23 +208,23 @@ function renderLibrary() {
                 </div>
                 <div class="rating-stars">
                     ${renderStars(game.rating || 0)} 
-                    <span>${game.hours_played || 0}h</span>
+                    <span>⏱️ ${game.hours_played || 0}h</span>
                 </div>
                 <div class="game-meta">
                     <span class="tag"><i class="fas fa-tag"></i> ${escapeHtml(game.genre) || 'General'}</span>
                     ${game.tags ? game.tags.split(',').map(t => `<span class="tag">#${escapeHtml(t.trim())}</span>`).join('') : ''}
                 </div>
+                <div style="margin-top: 8px;">
+                    <i class="fas ${getStatusIcon(game.status)}"></i> 
+                    <span style="text-transform: capitalize;">${game.status || 'backlog'}</span>
+                </div>
                 <div class="card-actions">
                     <button class="edit-game" data-id="${game.id}">
-                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-edit"></i> Edit
                     </button>
                     <button class="delete-game" data-id="${game.id}">
-                        <i class="fas fa-trash-alt"></i>
+                        <i class="fas fa-trash-alt"></i> Delete
                     </button>
-                </div>
-                <div>
-                    <i class="fas fa-${game.status === 'completed' ? 'check-circle' : (game.status === 'playing' ? 'play-circle' : 'book')}"></i> 
-                    ${game.status || 'backlog'}
                 </div>
             </div>
         </div>
@@ -145,7 +246,14 @@ function renderLibrary() {
     });
 }
 
-// Update dashboard statistics dan charts
+function getStatusIcon(status) {
+    switch(status) {
+        case 'completed': return 'fa-trophy';
+        case 'playing': return 'fa-play-circle';
+        default: return 'fa-book';
+    }
+}
+
 function updateDashboard() {
     const total = gamesData.length;
     const completed = gamesData.filter(g => g.status === 'completed').length;
@@ -163,6 +271,11 @@ function updateDashboard() {
     if (totalHoursEl) totalHoursEl.innerText = totalHours;
     if (avgRatingEl) avgRatingEl.innerText = avgRating;
 
+    // Update charts
+    updateCharts();
+}
+
+function updateCharts() {
     // Genre stats untuk chart
     const genreCount = {};
     gamesData.forEach(g => {
@@ -171,11 +284,8 @@ function updateDashboard() {
     
     const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
     
-    // Update atau create charts
+    // Genre Chart
     const genreCtx = document.getElementById('genreChart')?.getContext('2d');
-    const completionCtx = document.getElementById('completionChart')?.getContext('2d');
-    const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
-    
     if (genreCtx) {
         if (genreChart) genreChart.destroy();
         genreChart = new Chart(genreCtx, {
@@ -187,10 +297,18 @@ function updateDashboard() {
                     backgroundColor: ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#10b981']
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-primary') } }
+                }
+            }
         });
     }
     
+    // Completion Chart
+    const completionCtx = document.getElementById('completionChart')?.getContext('2d');
     if (completionCtx) {
         const completionData = [
             gamesData.filter(g => g.status === 'completed').length,
@@ -201,13 +319,25 @@ function updateDashboard() {
         completionChart = new Chart(completionCtx, {
             type: 'bar',
             data: {
-                labels: ['Completed', 'Playing', 'Backlog'],
-                datasets: [{ label: 'Games', data: completionData, backgroundColor: '#8b5cf6' }]
+                labels: ['🏆 Completed', '🎮 Playing', '📚 Backlog'],
+                datasets: [{
+                    label: 'Number of Games',
+                    data: completionData,
+                    backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b']
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
         });
     }
     
+    // Rating Distribution Chart
+    const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
     if (ratingCtx) {
         const ratingDist = [0, 0, 0, 0, 0];
         gamesData.forEach(g => {
@@ -217,15 +347,27 @@ function updateDashboard() {
         ratingChart = new Chart(ratingCtx, {
             type: 'line',
             data: {
-                labels: ['★1', '★2', '★3', '★4', '★5'],
-                datasets: [{ label: 'Count', data: ratingDist, borderColor: '#f59e0b', tension: 0.3, fill: true }]
+                labels: ['★ 1', '★ 2', '★ 3', '★ 4', '★ 5'],
+                datasets: [{
+                    label: 'Games Count',
+                    data: ratingDist,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: true }
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
         });
     }
 }
 
-// Update filter options berdasarkan data
 function updateFilters() {
     const genres = [...new Set(gamesData.map(g => g.genre).filter(Boolean))];
     const platforms = [...new Set(gamesData.map(g => g.platform).filter(Boolean))];
@@ -234,147 +376,69 @@ function updateFilters() {
     const platformSelect = document.getElementById('filterPlatform');
     
     if (genreSelect) {
-        genreSelect.innerHTML = '<option value="">All Genres</option>' + 
+        genreSelect.innerHTML = '<option value="">🎮 All Genres</option>' + 
             genres.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
     }
     
     if (platformSelect) {
-        platformSelect.innerHTML = '<option value="">All Platforms</option>' + 
+        platformSelect.innerHTML = '<option value="">💻 All Platforms</option>' + 
             platforms.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
     }
 }
 
-// Save game (add or edit)
-async function saveGame(event) {
-    event.preventDefault();
-    
-    const id = document.getElementById('gameId')?.value;
-    const game = {
-        title: document.getElementById('title')?.value,
-        platform: document.getElementById('platform')?.value,
-        genre: document.getElementById('genre')?.value,
-        tags: document.getElementById('tags')?.value,
-        progress: parseInt(document.getElementById('progress')?.value || 0),
-        rating: parseFloat(document.getElementById('rating')?.value || 3),
-        hours_played: parseFloat(document.getElementById('hours_played')?.value || 0),
-        status: document.getElementById('status')?.value,
-        updated_at: new Date()
-    };
-    
-    try {
-        if (id) {
-            const { error } = await supabase.from('games').update(game).eq('id', id);
-            if (error) throw error;
-            showNotification('Game berhasil diupdate!', 'success');
-        } else {
-            const { error } = await supabase.from('games').insert([{ 
-                ...game, 
-                created_at: new Date() 
-            }]);
-            if (error) throw error;
-            showNotification('Game berhasil ditambahkan!', 'success');
-        }
-        closeModal();
-        fetchGames();
-    } catch (error) {
-        console.error('Error saving game:', error);
-        showNotification('Gagal menyimpan game', 'error');
-    }
-}
+// ============================================
+// MODAL FUNCTIONS
+// ============================================
 
-// Open modal untuk edit game
 function openEditModal(id) {
     const game = gamesData.find(g => g.id == id);
     if (game) {
-        const modalTitle = document.getElementById('modalTitle');
-        const gameId = document.getElementById('gameId');
-        const title = document.getElementById('title');
-        const platform = document.getElementById('platform');
-        const genre = document.getElementById('genre');
-        const tags = document.getElementById('tags');
-        const progress = document.getElementById('progress');
-        const rating = document.getElementById('rating');
-        const hoursPlayed = document.getElementById('hours_played');
-        const status = document.getElementById('status');
-        
-        if (modalTitle) modalTitle.innerText = 'Edit Game';
-        if (gameId) gameId.value = game.id;
-        if (title) title.value = game.title;
-        if (platform) platform.value = game.platform || '';
-        if (genre) genre.value = game.genre || '';
-        if (tags) tags.value = game.tags || '';
-        if (progress) progress.value = game.progress;
-        if (rating) rating.value = game.rating;
-        if (hoursPlayed) hoursPlayed.value = game.hours_played || 0;
-        if (status) status.value = game.status;
-        
-        const modal = document.getElementById('gameModal');
-        if (modal) modal.style.display = 'flex';
+        document.getElementById('modalTitle').innerText = '✏️ Edit Game';
+        document.getElementById('gameId').value = game.id;
+        document.getElementById('title').value = game.title;
+        document.getElementById('platform').value = game.platform || '';
+        document.getElementById('genre').value = game.genre || '';
+        document.getElementById('tags').value = game.tags || '';
+        document.getElementById('progress').value = game.progress;
+        document.getElementById('rating').value = game.rating;
+        document.getElementById('hours_played').value = game.hours_played || 0;
+        document.getElementById('status').value = game.status;
+        document.getElementById('gameModal').style.display = 'flex';
     }
 }
 
-// Delete confirmation
 let deleteId = null;
 
 function showDeleteConfirm(id) {
     deleteId = id;
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.style.display = 'flex';
+    document.getElementById('deleteModal').style.display = 'flex';
 }
 
-async function confirmDelete() {
+function confirmDelete() {
     if (deleteId) {
-        try {
-            const { error } = await supabase.from('games').delete().eq('id', deleteId);
-            if (error) throw error;
-            showNotification('Game berhasil dihapus!', 'success');
-            fetchGames();
-        } catch (error) {
-            console.error('Error deleting game:', error);
-            showNotification('Gagal menghapus game', 'error');
-        }
+        deleteGame(deleteId);
+        closeDeleteModal();
     }
-    closeDeleteModal();
 }
 
-// Close modals
 function closeModal() {
-    const modal = document.getElementById('gameModal');
-    const form = document.getElementById('gameForm');
-    const gameId = document.getElementById('gameId');
-    
-    if (modal) modal.style.display = 'none';
-    if (form) form.reset();
-    if (gameId) gameId.value = '';
+    document.getElementById('gameModal').style.display = 'none';
+    document.getElementById('gameForm').reset();
+    document.getElementById('gameId').value = '';
 }
 
 function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.style.display = 'none';
+    document.getElementById('deleteModal').style.display = 'none';
     deleteId = null;
 }
 
-// Show notification
-function showNotification(message, type = 'info') {
-    // Create notification element if not exists
-    let notification = document.getElementById('notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'notification';
-        document.body.appendChild(notification);
-    }
-    
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.style.display = 'block';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
+// ============================================
+// EVENT LISTENERS & INITIALIZATION
+// ============================================
 
-// Initialize event listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Game Tracker App Started');
+    
     // Tab switching
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -389,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (dashboardSection) dashboardSection.classList.toggle('active', tab === 'dashboard');
             if (librarySection) librarySection.classList.toggle('active', tab === 'library');
-            if (pageTitle) pageTitle.innerText = tab === 'dashboard' ? 'Dashboard' : 'Game Library';
+            if (pageTitle) pageTitle.innerText = tab === 'dashboard' ? '📊 Dashboard' : '🎮 Game Library';
             
             if (tab === 'library') renderLibrary();
         });
@@ -398,35 +462,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dark mode toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
     if (darkModeToggle) {
-        darkModeToggle.addEventListener('change', (e) => {
-            document.body.classList.toggle('dark-mode', e.target.checked);
-            localStorage.setItem('darkMode', e.target.checked);
-        });
-        
-        // Load saved dark mode preference
+        // Load saved preference
         const savedDarkMode = localStorage.getItem('darkMode') === 'true';
         darkModeToggle.checked = savedDarkMode;
         if (savedDarkMode) document.body.classList.add('dark-mode');
+        
+        darkModeToggle.addEventListener('change', (e) => {
+            document.body.classList.toggle('dark-mode', e.target.checked);
+            localStorage.setItem('darkMode', e.target.checked);
+            // Refresh charts to update colors
+            updateCharts();
+        });
     }
     
     // Add game button
     const addGameBtn = document.getElementById('addGameBtn');
     if (addGameBtn) {
         addGameBtn.addEventListener('click', () => {
-            const modalTitle = document.getElementById('modalTitle');
-            const form = document.getElementById('gameForm');
-            const gameId = document.getElementById('gameId');
-            
-            if (modalTitle) modalTitle.innerText = 'Add New Game';
-            if (form) form.reset();
-            if (gameId) gameId.value = '';
-            
-            const modal = document.getElementById('gameModal');
-            if (modal) modal.style.display = 'flex';
+            document.getElementById('modalTitle').innerText = '🎮 Add New Game';
+            document.getElementById('gameForm').reset();
+            document.getElementById('gameId').value = '';
+            document.getElementById('progress').value = 0;
+            document.getElementById('rating').value = 3;
+            document.getElementById('hours_played').value = 0;
+            document.getElementById('status').value = 'backlog';
+            document.getElementById('gameModal').style.display = 'flex';
         });
     }
     
-    // Close modals
+    // Close modals when clicking outside or on close button
     document.querySelectorAll('.close-modal, .modal').forEach(el => {
         el.addEventListener('click', function(e) {
             if (e.target === this || e.target.classList.contains('close-modal')) {
@@ -465,52 +529,18 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchGames();
     
     // Setup realtime subscription
-    const gamesChannel = supabase
+    const gamesChannel = supabaseClient
         .channel('games-channel')
         .on('postgres_changes', 
             { event: '*', schema: 'public', table: 'games' }, 
-            () => fetchGames()
+            () => {
+                console.log('🔄 Realtime update detected');
+                fetchGames();
+            }
         )
-        .subscribe();
+        .subscribe((status) => {
+            console.log('📡 Realtime subscription status:', status);
+        });
+    
+    console.log('✅ App initialized successfully');
 });
-
-// Add notification styles to CSS
-const notificationStyle = document.createElement('style');
-notificationStyle.textContent = `
-    .notification {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 500;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        display: none;
-    }
-    
-    .notification.success {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-    
-    .notification.error {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-    
-    .notification.info {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-    }
-    
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(notificationStyle);
