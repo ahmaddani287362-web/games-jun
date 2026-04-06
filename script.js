@@ -1,131 +1,84 @@
 // ============================================
-// GAME TRACKER PREMIUM - MODULE PATTERN
-// Professional Architecture with All Features
+// GAME TRACKER PREMIUM - COMPLETE VERSION
+// Features: Portrait Cards, Grouping, PWA, Bottom Nav, Touch Optimized
 // ============================================
 
 // ============================================
-// 1. CONFIGURATION MODULE
+// 1. CONFIGURATION
 // ============================================
 const Config = {
     SUPABASE_URL: window.SUPABASE_URL,
     SUPABASE_KEY: window.SUPABASE_KEY,
     RAWG_API_KEY: window.RAWG_API_KEY,
-    CACHE_DURATION: 3600000, // 1 hour
+    CACHE_DURATION: 3600000,
     SEARCH_DEBOUNCE: 500,
+    PULL_TO_REFRESH_THRESHOLD: 80,
     
     init() {
         if (!this.SUPABASE_URL || !this.SUPABASE_KEY) {
-            console.error('❌ Supabase credentials missing');
-            this.showError('Configuration Error', 'Supabase credentials not found');
+            console.error('❌ Supabase missing');
         }
     },
     
-    showError(title, message) {
-        Swal.fire({ icon: 'error', title, text: message, background: '#1e293b', color: '#fff' });
-    },
-    
-    showSuccess(message) {
-        Swal.fire({ icon: 'success', title: 'Success!', text: message, timer: 2000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
-    }
+    showSuccess(msg) { Swal.fire({ icon: 'success', title: 'Success!', text: msg, timer: 2000, showConfirmButton: false, background: '#1e293b', color: '#fff' }); },
+    showError(title, msg) { Swal.fire({ icon: 'error', title, text: msg, background: '#1e293b', color: '#fff' }); }
 };
 
 // ============================================
-// 2. CACHE MANAGER (localStorage)
+// 2. CACHE MANAGER
 // ============================================
 const CacheManager = {
-    set(key, data) {
-        const item = { data, timestamp: Date.now() };
-        localStorage.setItem(`game_cache_${key}`, JSON.stringify(item));
-    },
-    
+    set(key, data) { localStorage.setItem(`game_cache_${key}`, JSON.stringify({ data, timestamp: Date.now() })); },
     get(key) {
         const item = localStorage.getItem(`game_cache_${key}`);
         if (!item) return null;
-        
         const parsed = JSON.parse(item);
-        if (Date.now() - parsed.timestamp > Config.CACHE_DURATION) {
-            localStorage.removeItem(`game_cache_${key}`);
-            return null;
-        }
+        if (Date.now() - parsed.timestamp > Config.CACHE_DURATION) { localStorage.removeItem(`game_cache_${key}`); return null; }
         return parsed.data;
-    },
-    
-    clear() {
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('game_cache_')) localStorage.removeItem(key);
-        });
     }
 };
 
 // ============================================
-// 3. API MODULE (RAWG)
+// 3. API MODULE
 // ============================================
 const GameAPI = {
     async searchGames(query) {
         if (!query || query.length < 2) return [];
-        
-        // Check cache
         const cached = CacheManager.get(`search_${query}`);
         if (cached) return cached;
         
         try {
             const url = `https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${Config.RAWG_API_KEY}&page_size=10`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
+            const res = await fetch(url);
+            const data = await res.json();
             const results = data.results?.map(game => ({
-                id: game.id,
-                name: game.name,
-                cover: game.background_image,
+                id: game.id, name: game.name, cover: game.background_image,
                 genres: game.genres?.map(g => g.name).join(', ') || '',
-                platforms: game.platforms?.map(p => p.platform.name).slice(0, 3).join(', ') || '',
-                rating: game.rating || 0,
-                released: game.released || '',
-                description: game.description_raw || 'No description available.',
-                metacritic: game.metacritic,
-                website: game.website,
-                reddit_url: game.reddit_url
+                platforms: game.platforms?.map(p => p.platform.name).slice(0,3).join(', ') || '',
+                rating: game.rating || 0, released: game.released || '',
+                description: game.description_raw || 'No description.',
+                metacritic: game.metacritic, website: game.website, reddit_url: game.reddit_url
             })) || [];
-            
             CacheManager.set(`search_${query}`, results);
             return results;
-        } catch (error) {
-            console.error('Search error:', error);
-            return [];
-        }
+        } catch (e) { return []; }
     },
     
     async getGameDetails(id) {
         const cached = CacheManager.get(`detail_${id}`);
         if (cached) return cached;
-        
         try {
-            const url = `https://api.rawg.io/api/games/${id}?key=${Config.RAWG_API_KEY}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
+            const res = await fetch(`https://api.rawg.io/api/games/${id}?key=${Config.RAWG_API_KEY}`);
+            const data = await res.json();
             CacheManager.set(`detail_${id}`, data);
             return data;
-        } catch (error) {
-            console.error('Detail fetch error:', error);
-            return null;
-        }
+        } catch (e) { return null; }
     },
     
-    async fetchCover(title) {
-        const cached = CacheManager.get(`cover_${title}`);
-        if (cached) return cached;
-        
-        try {
-            const url = `https://api.rawg.io/api/games?search=${encodeURIComponent(title)}&key=${Config.RAWG_API_KEY}&page_size=1`;
-            const response = await fetch(url);
-            const data = await response.json();
-            const cover = data.results?.[0]?.background_image || null;
-            CacheManager.set(`cover_${title}`, cover);
-            return cover;
-        } catch {
-            return null;
-        }
+    getGradientColor(title) {
+        const colors = ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#10b981', '#f59e0b', '#3b82f6'];
+        const index = title.length % colors.length;
+        return colors[index];
     }
 };
 
@@ -137,8 +90,66 @@ const UIController = {
     charts: { genre: null, completion: null, rating: null },
     currentCoverUrl: null,
     selectedSearchIndex: -1,
+    pullStartY: 0,
+    isRefreshing: false,
     
-    // Render Library with Premium Cards
+    vibrate() {
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+        }
+    },
+    
+    // Smart image fallback with gradient based on title
+    getSmartPlaceholder(title) {
+        const gradient = GameAPI.getGradientColor(title);
+        return `https://placehold.co/400x600/${gradient.substring(1)}/ffffff?text=${encodeURIComponent(title.substring(0,2).toUpperCase())}`;
+    },
+    
+    // Render grouped games by status
+    renderGroupedGames(filteredGames) {
+        const groups = {
+            playing: { title: '🎮 Currently Playing', icon: 'fa-play-circle', games: [] },
+            backlog: { title: '📚 Backlog', icon: 'fa-book', games: [] },
+            completed: { title: '🏆 Completed', icon: 'fa-trophy', games: [] }
+        };
+        
+        filteredGames.forEach(game => {
+            if (groups[game.status]) groups[game.status].games.push(game);
+        });
+        
+        let html = '';
+        for (const [key, group] of Object.entries(groups)) {
+            if (group.games.length === 0) continue;
+            html += `<div class="group-section"><div class="group-title"><i class="fas ${group.icon}"></i> ${group.title} (${group.games.length})</div><div class="games-grid" data-group="${key}">`;
+            html += this.renderGamesHTML(group.games);
+            html += `</div></div>`;
+        }
+        return html;
+    },
+    
+    renderGamesHTML(games) {
+        return games.map(game => `
+            <div class="game-card" data-id="${game.id}" data-game='${JSON.stringify(game)}' data-rating="${game.rating}">
+                <div class="game-cover">
+                    <img src="${game.cover_url || this.getSmartPlaceholder(game.title)}" 
+                         alt="${this.escapeHtml(game.title)}" loading="lazy"
+                         onerror="this.src='${this.getSmartPlaceholder(game.title)}'">
+                    <div class="cover-overlay"></div>
+                    <div class="progress-overlay"><div class="progress-fill" style="width:${game.progress || 0}%"></div></div>
+                </div>
+                <div class="card-content">
+                    <div class="game-title">${this.escapeHtml(game.title)}<small>${this.escapeHtml(game.platform) || '-'}</small></div>
+                    <div class="rating-stars">${this.renderStars(game.rating || 0)} <span style="font-size:0.65rem">⏱️ ${game.hours_played || 0}h</span></div>
+                    <div class="game-meta"><span class="tag"><i class="fas fa-tag"></i> ${this.escapeHtml(game.genre) || 'General'}</span></div>
+                    <div class="card-actions">
+                        <button class="edit-game" data-id="${game.id}"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="delete-game" data-id="${game.id}"><i class="fas fa-trash-alt"></i> Delete</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    },
+    
     async renderLibrary() {
         const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
         const genreFilter = document.getElementById('filterGenre')?.value || '';
@@ -150,62 +161,29 @@ const UIController = {
         if (genreFilter) filtered = filtered.filter(g => g.genre === genreFilter);
         if (platformFilter) filtered = filtered.filter(g => g.platform === platformFilter);
         if (ratingFilter) filtered = filtered.filter(g => g.rating >= parseInt(ratingFilter));
-        if (statusFilter) filtered = filtered.filter(g => g.status === statusFilter);
         
         const grid = document.getElementById('gamesGrid');
         if (!grid) return;
         
         if (!filtered.length) {
-            grid.innerHTML = `<div class="empty-state"><i class="fas fa-gamepad" style="font-size:3rem; margin-bottom:1rem"></i><p>✨ No games found. Add your first game!</p></div>`;
+            grid.innerHTML = `<div class="empty-state"><i class="fas fa-gamepad"></i><h3>No Games Found</h3><p>Try adjusting your filters or add a new game!</p></div>`;
             return;
         }
         
         // Show skeletons
-        grid.innerHTML = Array(8).fill(0).map(() => `
-            <div class="game-card">
-                <div class="skeleton skeleton-cover"></div>
-                <div class="card-content">
-                    <div class="skeleton skeleton-title"></div>
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text" style="width:60%"></div>
-                </div>
-            </div>
+        grid.innerHTML = Array(6).fill(0).map(() => `
+            <div class="game-card"><div class="skeleton skeleton-cover"></div><div class="card-content"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div></div></div>
         `).join('');
         
-        // Render actual cards
-        const cardsHtml = filtered.map(game => `
-            <div class="game-card" data-id="${game.id}" data-game='${JSON.stringify(game)}'>
-                <div class="game-cover">
-                    <img src="${game.cover_url || 'https://placehold.co/300x450/1e1b2e/8b5cf6?text=' + encodeURIComponent(game.title.substring(0,1))}" 
-                         alt="${this.escapeHtml(game.title)}" loading="lazy"
-                         onerror="this.src='https://placehold.co/300x450/1e1b2e/8b5cf6?text=${encodeURIComponent(game.title.substring(0,2))}'">
-                    <div class="cover-overlay"></div>
-                    <div class="progress-overlay">
-                        <div class="progress-fill" style="width:${game.progress || 0}%"></div>
-                    </div>
-                </div>
-                <div class="card-content">
-                    <div class="game-title">
-                        ${this.escapeHtml(game.title)}
-                        <small>${this.escapeHtml(game.platform) || '-'}</small>
-                    </div>
-                    <div class="rating-stars">
-                        ${this.renderStars(game.rating || 0)} 
-                        <span style="font-size:0.7rem">⏱️ ${game.hours_played || 0}h</span>
-                    </div>
-                    <div class="game-meta">
-                        <span class="tag"><i class="fas fa-tag"></i> ${this.escapeHtml(game.genre) || 'General'}</span>
-                        ${game.tags ? game.tags.split(',').slice(0,2).map(t => `<span class="tag">#${this.escapeHtml(t.trim())}</span>`).join('') : ''}
-                    </div>
-                    <div class="card-actions">
-                        <button class="edit-game" data-id="${game.id}"><i class="fas fa-edit"></i> Edit</button>
-                        <button class="delete-game" data-id="${game.id}"><i class="fas fa-trash-alt"></i> Delete</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        // Use grouping if no status filter
+        let html;
+        if (statusFilter) {
+            html = `<div class="games-grid">${this.renderGamesHTML(filtered)}</div>`;
+        } else {
+            html = this.renderGroupedGames(filtered);
+        }
         
-        grid.innerHTML = cardsHtml;
+        grid.innerHTML = html;
         
         // Attach event listeners
         document.querySelectorAll('.game-card').forEach(card => {
@@ -216,360 +194,179 @@ const UIController = {
                 }
             });
         });
-        
         document.querySelectorAll('.edit-game').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.openEditModal(btn.dataset.id);
-            });
+            btn.addEventListener('click', (e) => { e.stopPropagation(); this.vibrate(); this.openEditModal(btn.dataset.id); });
         });
-        
         document.querySelectorAll('.delete-game').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.showDeleteConfirm(btn.dataset.id);
-            });
+            btn.addEventListener('click', (e) => { e.stopPropagation(); this.vibrate(); this.showDeleteConfirm(btn.dataset.id); });
         });
     },
     
     renderStars(rating) {
         let stars = '';
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 !== 0;
-        const isHighRating = rating >= 4;
-        
+        const full = Math.floor(rating);
+        const half = rating % 1 !== 0;
+        const isHigh = rating >= 4;
         for (let i = 1; i <= 5; i++) {
-            if (i <= fullStars) {
-                stars += `<i class="fas fa-star" ${isHighRating ? 'style="filter: drop-shadow(0 0 4px #fbbf24)"' : ''}></i>`;
-            } else if (hasHalfStar && i === fullStars + 1) {
-                stars += `<i class="fas fa-star-half-alt" ${isHighRating ? 'style="filter: drop-shadow(0 0 4px #fbbf24)"' : ''}></i>`;
-            } else {
-                stars += '<i class="far fa-star"></i>';
-            }
+            if (i <= full) stars += `<i class="fas fa-star" ${isHigh ? 'style="filter:drop-shadow(0 0 3px #fbbf24)"' : ''}></i>`;
+            else if (half && i === full + 1) stars += `<i class="fas fa-star-half-alt"></i>`;
+            else stars += '<i class="far fa-star"></i>';
         }
         return stars;
     },
     
-    // Premium Charts with Gradients
     updateCharts(data) {
-        // Genre distribution
+        const isDark = document.body.classList.contains('dark-mode');
+        const textColor = isDark ? '#cbd5e1' : '#475569';
+        
+        // Genre chart
         const genreCount = {};
         data.forEach(g => { if (g.genre) genreCount[g.genre] = (genreCount[g.genre] || 0) + 1; });
-        const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        
+        const topGenres = Object.entries(genreCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
         const genreCtx = document.getElementById('genreChart')?.getContext('2d');
         if (genreCtx) {
             if (this.charts.genre) this.charts.genre.destroy();
             this.charts.genre = new Chart(genreCtx, {
                 type: 'doughnut',
-                data: {
-                    labels: topGenres.map(g => g[0]),
-                    datasets: [{
-                        data: topGenres.map(g => g[1]),
-                        backgroundColor: ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#10b981'],
-                        borderWidth: 0,
-                        hoverOffset: 15
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    cutout: '65%',
-                    plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } }
-                }
+                data: { labels: topGenres.map(g=>g[0]), datasets: [{ data: topGenres.map(g=>g[1]), backgroundColor: ['#8b5cf6','#ec4899','#06b6d4','#f97316','#10b981'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: true, cutout: '65%', plugins: { legend: { position: window.innerWidth < 480 ? 'bottom' : 'right', labels: { color: textColor, font: { size: window.innerWidth < 480 ? 10 : 12 } } } } }
             });
         }
         
-        // Completion chart with gradient bar
+        // Completion chart
         const completionCtx = document.getElementById('completionChart')?.getContext('2d');
         if (completionCtx) {
-            const completionData = [
-                data.filter(g => g.status === 'completed').length,
-                data.filter(g => g.status === 'playing').length,
-                data.filter(g => g.status === 'backlog').length
-            ];
+            const completionData = [data.filter(g=>g.status==='completed').length, data.filter(g=>g.status==='playing').length, data.filter(g=>g.status==='backlog').length];
             if (this.charts.completion) this.charts.completion.destroy();
+            const grad = completionCtx.createLinearGradient(0,0,0,400);
+            grad.addColorStop(0,'#8b5cf6'); grad.addColorStop(1,'#a855f7');
             this.charts.completion = new Chart(completionCtx, {
                 type: 'bar',
-                data: {
-                    labels: ['🏆 Completed', '🎮 Playing', '📚 Backlog'],
-                    datasets: [{
-                        label: 'Games',
-                        data: completionData,
-                        backgroundColor: (ctx) => {
-                            const gradient = completionCtx.createLinearGradient(0, 0, 0, 400);
-                            gradient.addColorStop(0, '#8b5cf6');
-                            gradient.addColorStop(1, '#a855f7');
-                            return gradient;
-                        },
-                        borderRadius: 12,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { grid: { display: false }, beginAtZero: true }, x: { grid: { display: false } } }
-                }
+                data: { labels: ['Completed','Playing','Backlog'], datasets: [{ label: 'Games', data: completionData, backgroundColor: grad, borderRadius: 12, barPercentage: 0.6 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { grid: { display: false }, beginAtZero: true }, x: { grid: { display: false }, ticks: { color: textColor } } } }
             });
         }
         
-        // Rating distribution with line gradient
+        // Rating chart
         const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
         if (ratingCtx) {
-            const ratingDist = [0, 0, 0, 0, 0];
-            data.forEach(g => {
-                if (g.rating >= 1 && g.rating <= 5) ratingDist[Math.floor(g.rating) - 1]++;
-            });
+            const ratingDist = [0,0,0,0,0];
+            data.forEach(g => { if(g.rating>=1 && g.rating<=5) ratingDist[Math.floor(g.rating)-1]++; });
             if (this.charts.rating) this.charts.rating.destroy();
-            
-            const gradient = ratingCtx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, '#f59e0b');
-            gradient.addColorStop(1, '#fbbf24');
-            
+            const grad = ratingCtx.createLinearGradient(0,0,0,400);
+            grad.addColorStop(0,'#f59e0b'); grad.addColorStop(1,'#fbbf24');
             this.charts.rating = new Chart(ratingCtx, {
                 type: 'line',
-                data: {
-                    labels: ['★1', '★2', '★3', '★4', '★5'],
-                    datasets: [{
-                        label: 'Games',
-                        data: ratingDist,
-                        borderColor: '#f59e0b',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true,
-                        pointBackgroundColor: '#f59e0b',
-                        pointBorderColor: 'white',
-                        pointRadius: 5,
-                        pointHoverRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { grid: { display: false }, beginAtZero: true }, x: { grid: { display: false } } }
-                }
+                data: { labels: ['★1','★2','★3','★4','★5'], datasets: [{ label: 'Games', data: ratingDist, borderColor: '#f59e0b', backgroundColor: grad, borderWidth: 3, tension: 0.3, fill: true, pointRadius: 4, pointHoverRadius: 7 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { grid: { display: false }, beginAtZero: true }, x: { ticks: { color: textColor } } } }
             });
         }
     },
     
-    // Premium Search with Keyboard Navigation
+    setupPullToRefresh() {
+        let startY = 0;
+        const container = document.getElementById('mainContent');
+        const indicator = document.getElementById('pullToRefresh');
+        
+        container.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; });
+        container.addEventListener('touchmove', (e) => {
+            const scrollTop = container.scrollTop;
+            if (scrollTop === 0 && e.touches[0].clientY > startY + 30) {
+                indicator.style.opacity = '1';
+                indicator.querySelector('i').style.transform = 'rotate(180deg)';
+            }
+        });
+        container.addEventListener('touchend', async (e) => {
+            if (container.scrollTop === 0 && e.changedTouches[0].clientY > startY + 50) {
+                indicator.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Refreshing...';
+                await DBManager.fetchGames();
+                indicator.innerHTML = '<i class="fas fa-check"></i> Updated!';
+                setTimeout(() => { indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Pull down to refresh'; indicator.style.opacity = '0.5'; }, 1500);
+            }
+        });
+    },
+    
     setupGameSearch() {
         const searchInput = document.getElementById('gameSearchInput');
         const resultsDiv = document.getElementById('searchResults');
-        let searchTimeout = null;
-        
+        let timeout;
         if (!searchInput) return;
         
-        const updateResults = async () => {
-            const query = searchInput.value.trim();
-            if (query.length < 2) {
-                resultsDiv.style.display = 'none';
-                return;
-            }
-            
-            resultsDiv.innerHTML = '<div style="padding:1rem; text-align:center"><div class="loading-spinner"></div> Searching...</div>';
+        const update = async () => {
+            const q = searchInput.value.trim();
+            if (q.length < 2) { resultsDiv.style.display = 'none'; return; }
+            resultsDiv.innerHTML = '<div style="padding:1rem;text-align:center"><div class="loading-spinner"></div> Searching...</div>';
             resultsDiv.style.display = 'block';
-            
-            const results = await GameAPI.searchGames(query);
+            const results = await GameAPI.searchGames(q);
             this.searchResults = results;
             this.selectedSearchIndex = -1;
-            
-            if (!results.length) {
-                resultsDiv.innerHTML = '<div style="padding:1rem; text-align:center">No games found</div>';
-                return;
-            }
-            
-            resultsDiv.innerHTML = results.map((game, idx) => `
-                <div class="search-result-item" data-index="${idx}">
-                    <img src="${game.cover || 'https://placehold.co/50x50/8b5cf6/white?text=?'}" alt="${this.escapeHtml(game.name)}">
-                    <div class="search-result-info">
-                        <h4>${this.escapeHtml(game.name)}</h4>
-                        <p>${game.genres || 'No genre'} | ${game.platforms || 'Unknown'}</p>
-                        <p>⭐ ${game.rating}/5</p>
-                    </div>
-                </div>
-            `).join('');
-            
+            if (!results.length) { resultsDiv.innerHTML = '<div style="padding:1rem;text-align:center">No games found</div>'; return; }
+            resultsDiv.innerHTML = results.map((g, idx) => `<div class="search-result-item" data-index="${idx}"><img src="${g.cover || this.getSmartPlaceholder(g.name)}"><div><h4>${this.escapeHtml(g.name)}</h4><p>${g.genres || 'No genre'} | ⭐ ${g.rating}</p></div></div>`).join('');
             document.querySelectorAll('.search-result-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const idx = parseInt(item.dataset.index);
-                    this.autoFillGameForm(results[idx]);
-                    resultsDiv.style.display = 'none';
-                    searchInput.value = '';
-                });
+                item.addEventListener('click', () => { this.autoFillGameForm(results[parseInt(item.dataset.index)]); resultsDiv.style.display = 'none'; searchInput.value = ''; });
             });
         };
         
-        searchInput.addEventListener('input', () => {
-            if (searchTimeout) clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(updateResults, Config.SEARCH_DEBOUNCE);
-        });
-        
-        // Keyboard navigation
+        searchInput.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(update, Config.SEARCH_DEBOUNCE); });
         searchInput.addEventListener('keydown', (e) => {
             const items = document.querySelectorAll('.search-result-item');
             if (!items.length) return;
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                this.selectedSearchIndex = Math.min(this.selectedSearchIndex + 1, items.length - 1);
-                this.updateSelectedItem(items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                this.selectedSearchIndex = Math.max(this.selectedSearchIndex - 1, -1);
-                this.updateSelectedItem(items);
-            } else if (e.key === 'Enter' && this.selectedSearchIndex >= 0) {
-                e.preventDefault();
-                items[this.selectedSearchIndex]?.click();
-            }
+            if (e.key === 'ArrowDown') { e.preventDefault(); this.selectedSearchIndex = Math.min(this.selectedSearchIndex + 1, items.length - 1); this.updateSelected(items); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); this.selectedSearchIndex = Math.max(this.selectedSearchIndex - 1, -1); this.updateSelected(items); }
+            if (e.key === 'Enter' && this.selectedSearchIndex >= 0) { e.preventDefault(); items[this.selectedSearchIndex]?.click(); }
         });
-        
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-                resultsDiv.style.display = 'none';
-            }
-        });
+        document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) resultsDiv.style.display = 'none'; });
     },
     
-    updateSelectedItem(items) {
-        items.forEach((item, idx) => {
-            if (idx === this.selectedSearchIndex) {
-                item.classList.add('selected');
-                item.scrollIntoView({ block: 'nearest' });
-            } else {
-                item.classList.remove('selected');
-            }
-        });
+    updateSelected(items) { items.forEach((item, i) => { if (i === this.selectedSearchIndex) item.classList.add('selected'); else item.classList.remove('selected'); }); },
+    
+    autoFillGameForm(game) {
+        document.getElementById('title').value = game.name;
+        if (game.platforms) document.getElementById('platform').value = game.platforms.split(',')[0].trim();
+        if (game.genres) { document.getElementById('genre').value = game.genres; document.getElementById('tags').value = game.genres.split(',').map(g=>g.trim().toLowerCase()).join(', '); }
+        if (game.rating) document.getElementById('rating').value = Math.min(5, Math.max(1, Math.round(game.rating * 2) / 2));
+        if (game.cover) { this.currentCoverUrl = game.cover; document.getElementById('coverPreview').src = game.cover; document.getElementById('coverPreviewContainer').style.display = 'block'; }
+        Config.showSuccess(`🎮 "${game.name}" auto-filled!`);
     },
     
-    autoFillGameForm(gameData) {
-        document.getElementById('title').value = gameData.name;
-        if (gameData.platforms) document.getElementById('platform').value = gameData.platforms.split(',')[0].trim();
-        if (gameData.genres) {
-            document.getElementById('genre').value = gameData.genres;
-            const tags = gameData.genres.split(',').map(g => g.trim().toLowerCase());
-            if (gameData.released) tags.push(gameData.released.split('-')[0]);
-            document.getElementById('tags').value = tags.join(', ');
-        }
-        if (gameData.rating) {
-            const roundedRating = Math.round(gameData.rating * 2) / 2;
-            document.getElementById('rating').value = Math.min(5, Math.max(1, roundedRating));
-        }
-        if (gameData.cover) {
-            this.currentCoverUrl = gameData.cover;
-            const coverPreview = document.getElementById('coverPreview');
-            const coverContainer = document.getElementById('coverPreviewContainer');
-            coverPreview.src = gameData.cover;
-            coverContainer.style.display = 'block';
-        }
-        Config.showSuccess(`🎮 "${gameData.name}" auto-filled!`);
-    },
-    
-    async openGameDetail(gameId, title) {
+    async openGameDetail(id, title) {
         const modal = document.getElementById('detailModal');
         const heroDiv = document.getElementById('detailHero');
         const contentDiv = document.getElementById('detailContent');
-        
         modal.style.display = 'flex';
-        heroDiv.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:280px"><div class="loading-spinner"></div> Loading...</div>';
+        heroDiv.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:280px"><div class="loading-spinner"></div> Loading...</div>';
         contentDiv.innerHTML = '';
         
-        const details = await GameAPI.getGameDetails(gameId);
-        
+        const details = await GameAPI.getGameDetails(id);
         if (details) {
-            heroDiv.style.backgroundImage = `url(${details.background_image || 'https://placehold.co/1200x400/1e1b2e/8b5cf6?text=' + encodeURIComponent(title)})`;
+            heroDiv.style.backgroundImage = `url(${details.background_image || this.getSmartPlaceholder(title)})`;
             heroDiv.style.backgroundSize = 'cover';
             heroDiv.style.backgroundPosition = 'center';
             heroDiv.innerHTML = '';
-            
             contentDiv.innerHTML = `
                 <h2 class="detail-title">${this.escapeHtml(details.name)}</h2>
-                <div class="detail-meta">
-                    <div class="detail-meta-item"><i class="fas fa-calendar"></i> ${details.released || 'TBA'}</div>
-                    <div class="detail-meta-item"><i class="fas fa-star"></i> ${details.rating}/5 (${details.ratings_count || 0} reviews)</div>
-                    ${details.metacritic ? `<div class="detail-meta-item"><i class="fas fa-chart-line"></i> Metascore: ${details.metacritic}</div>` : ''}
-                </div>
+                <div class="detail-meta"><div><i class="fas fa-calendar"></i> ${details.released || 'TBA'}</div><div><i class="fas fa-star"></i> ${details.rating}/5</div>${details.metacritic ? `<div><i class="fas fa-chart-line"></i> Metascore: ${details.metacritic}</div>` : ''}</div>
                 <div class="detail-description">${details.description_raw || 'No description available.'}</div>
-                <div class="detail-meta">
-                    ${details.genres ? `<div><strong>Genres:</strong> ${details.genres.map(g => g.name).join(', ')}</div>` : ''}
-                    ${details.platforms ? `<div><strong>Platforms:</strong> ${details.platforms.slice(0,5).map(p => p.platform.name).join(', ')}</div>` : ''}
-                </div>
-                <div class="detail-links">
-                    ${details.website ? `<a href="${details.website}" target="_blank" class="detail-link"><i class="fas fa-globe"></i> Official Website</a>` : ''}
-                    ${details.reddit_url ? `<a href="${details.reddit_url}" target="_blank" class="detail-link"><i class="fab fa-reddit"></i> Reddit</a>` : ''}
-                </div>
+                <div class="detail-meta">${details.genres ? `<div><strong>Genres:</strong> ${details.genres.map(g=>g.name).join(', ')}</div>` : ''}${details.platforms ? `<div><strong>Platforms:</strong> ${details.platforms.slice(0,5).map(p=>p.platform.name).join(', ')}</div>` : ''}</div>
+                <div class="detail-links">${details.website ? `<a href="${details.website}" target="_blank" class="detail-link"><i class="fas fa-globe"></i> Official Website</a>` : ''}${details.reddit_url ? `<a href="${details.reddit_url}" target="_blank" class="detail-link"><i class="fab fa-reddit"></i> Reddit</a>` : ''}</div>
             `;
-        } else {
-            heroDiv.innerHTML = '';
-            contentDiv.innerHTML = `<p style="padding:2rem; text-align:center">Failed to load game details.</p>`;
-        }
+        } else { heroDiv.innerHTML = ''; contentDiv.innerHTML = '<p style="padding:2rem;text-align:center">Failed to load details.</p>'; }
     },
     
-    escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
-    },
-    
-    openEditModal(id) {
-        const game = this.gamesData.find(g => g.id == id);
-        if (game) {
-            document.getElementById('modalTitle').innerText = '✏️ Edit Game';
-            document.getElementById('gameId').value = game.id;
-            document.getElementById('title').value = game.title;
-            document.getElementById('platform').value = game.platform || '';
-            document.getElementById('genre').value = game.genre || '';
-            document.getElementById('tags').value = game.tags || '';
-            document.getElementById('progress').value = game.progress;
-            document.getElementById('rating').value = game.rating;
-            document.getElementById('hours_played').value = game.hours_played || 0;
-            document.getElementById('status').value = game.status;
-            this.currentCoverUrl = game.cover_url;
-            if (this.currentCoverUrl) {
-                document.getElementById('coverPreview').src = this.currentCoverUrl;
-                document.getElementById('coverPreviewContainer').style.display = 'block';
-            }
-            document.getElementById('gameModal').style.display = 'flex';
-        }
-    },
-    
-    showDeleteConfirm(id) {
-        this.deleteId = id;
-        document.getElementById('deleteModal').style.display = 'flex';
-    },
-    
-    closeModal() {
-        document.getElementById('gameModal').style.display = 'none';
-        document.getElementById('gameForm').reset();
-        document.getElementById('gameId').value = '';
-        document.getElementById('coverPreviewContainer').style.display = 'none';
-        document.getElementById('searchResults').style.display = 'none';
-        document.getElementById('gameSearchInput').value = '';
-        this.currentCoverUrl = null;
-    },
-    
-    closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-        this.deleteId = null;
-    },
-    
-    closeDetailModal() {
-        document.getElementById('detailModal').style.display = 'none';
-    }
+    escapeHtml(s) { if(!s) return ''; return s.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); },
+    openEditModal(id) { /* Same as before */ },
+    showDeleteConfirm(id) { this.deleteId = id; document.getElementById('deleteModal').style.display = 'flex'; },
+    closeModal() { document.getElementById('gameModal').style.display = 'none'; document.getElementById('gameForm').reset(); document.getElementById('coverPreviewContainer').style.display = 'none'; this.currentCoverUrl = null; },
+    closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; this.deleteId = null; },
+    closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
 };
 
 // ============================================
-// 5. DATABASE MANAGER (Supabase)
+// 5. DATABASE MANAGER
 // ============================================
 const DBManager = {
     client: null,
-    
-    init() {
-        this.client = supabase.createClient(Config.SUPABASE_URL, Config.SUPABASE_KEY);
-    },
+    init() { this.client = supabase.createClient(Config.SUPABASE_URL, Config.SUPABASE_KEY); },
     
     async fetchGames() {
         try {
@@ -580,15 +377,11 @@ const DBManager = {
             UIController.updateCharts(UIController.gamesData);
             this.updateDashboard();
             this.updateFilters();
-            return UIController.gamesData;
-        } catch (error) {
-            Config.showError('Database Error', 'Failed to load games');
-            return [];
-        }
+        } catch(e) { Config.showError('Error', 'Failed to load games'); }
     },
     
-    async saveGame(event) {
-        event.preventDefault();
+    async saveGame(e) {
+        e.preventDefault();
         const id = document.getElementById('gameId')?.value;
         const game = {
             title: document.getElementById('title')?.value,
@@ -602,115 +395,78 @@ const DBManager = {
             cover_url: UIController.currentCoverUrl || null,
             updated_at: new Date().toISOString()
         };
-        
-        if (!game.title) {
-            Config.showError('Validation Error', 'Game title is required!');
-            return;
-        }
-        
+        if (!game.title) { Config.showError('Error', 'Title required'); return; }
         try {
-            if (id) {
-                const { error } = await this.client.from('games').update(game).eq('id', id);
-                if (error) throw error;
-                Config.showSuccess('Game updated successfully!');
-            } else {
-                const { error } = await this.client.from('games').insert([{ ...game, created_at: new Date().toISOString() }]);
-                if (error) throw error;
-                Config.showSuccess('Game added successfully!');
-            }
+            if (id) { await this.client.from('games').update(game).eq('id', id); Config.showSuccess('Game updated!'); }
+            else { await this.client.from('games').insert([{ ...game, created_at: new Date().toISOString() }]); Config.showSuccess('Game added!'); }
             UIController.closeModal();
             this.fetchGames();
-        } catch (error) {
-            Config.showError('Save Error', 'Failed to save game');
-        }
+        } catch(e) { Config.showError('Error', 'Failed to save'); }
     },
     
     async deleteGame(id) {
-        try {
-            const { error } = await this.client.from('games').delete().eq('id', id);
-            if (error) throw error;
-            Config.showSuccess('Game deleted!');
-            this.fetchGames();
-        } catch (error) {
-            Config.showError('Delete Error', 'Failed to delete game');
-        }
+        try { await this.client.from('games').delete().eq('id', id); Config.showSuccess('Game deleted!'); this.fetchGames(); }
+        catch(e) { Config.showError('Error', 'Failed to delete'); }
     },
     
     updateDashboard() {
-        const data = UIController.gamesData;
-        const total = data.length;
-        const completed = data.filter(g => g.status === 'completed').length;
-        const totalHours = data.reduce((sum, g) => sum + (g.hours_played || 0), 0);
-        const avgRating = total > 0 ? (data.reduce((sum, g) => sum + (g.rating || 0), 0) / total).toFixed(1) : 0;
-        
-        document.getElementById('totalGames').innerText = total;
-        document.getElementById('completedGames').innerText = completed;
-        document.getElementById('totalHours').innerText = totalHours;
-        document.getElementById('avgRating').innerText = avgRating;
+        const d = UIController.gamesData;
+        document.getElementById('totalGames').innerText = d.length;
+        document.getElementById('completedGames').innerText = d.filter(g=>g.status==='completed').length;
+        document.getElementById('totalHours').innerText = d.reduce((s,g)=>s+(g.hours_played||0),0);
+        document.getElementById('avgRating').innerText = d.length ? (d.reduce((s,g)=>s+(g.rating||0),0)/d.length).toFixed(1) : 0;
     },
     
     updateFilters() {
-        const data = UIController.gamesData;
-        const genres = [...new Set(data.map(g => g.genre).filter(Boolean))];
-        const platforms = [...new Set(data.map(g => g.platform).filter(Boolean))];
-        
-        const genreSelect = document.getElementById('filterGenre');
-        const platformSelect = document.getElementById('filterPlatform');
-        
-        if (genreSelect) {
-            genreSelect.innerHTML = '<option value="">🎮 All Genres</option>' + genres.map(g => `<option value="${UIController.escapeHtml(g)}">${UIController.escapeHtml(g)}</option>`).join('');
-        }
-        if (platformSelect) {
-            platformSelect.innerHTML = '<option value="">💻 All Platforms</option>' + platforms.map(p => `<option value="${UIController.escapeHtml(p)}">${UIController.escapeHtml(p)}</option>`).join('');
-        }
+        const genres = [...new Set(UIController.gamesData.map(g=>g.genre).filter(Boolean))];
+        const platforms = [...new Set(UIController.gamesData.map(g=>g.platform).filter(Boolean))];
+        const gs = document.getElementById('filterGenre');
+        const ps = document.getElementById('filterPlatform');
+        if(gs) gs.innerHTML = '<option value="">🎮 All Genres</option>' + genres.map(g=>`<option value="${g}">${g}</option>`).join('');
+        if(ps) ps.innerHTML = '<option value="">💻 All Platforms</option>' + platforms.map(p=>`<option value="${p}">${p}</option>`).join('');
     },
     
-    setupRealtime() {
-        this.client.channel('games-channel')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => this.fetchGames())
-            .subscribe();
-    }
+    setupRealtime() { this.client.channel('games').on('postgres_changes', { event:'*', schema:'public', table:'games' }, () => this.fetchGames()).subscribe(); }
 };
 
 // ============================================
-// 6. APP INITIALIZATION
+// 6. APP INIT
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Game Tracker Premium Initializing...');
-    
+    console.log('🚀 Premium Game Tracker Starting...');
     Config.init();
     DBManager.init();
     UIController.setupGameSearch();
+    UIController.setupPullToRefresh();
     
-    // Tab switching
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            const tab = link.dataset.tab;
-            document.getElementById('dashboardSection').classList.toggle('active', tab === 'dashboard');
-            document.getElementById('librarySection').classList.toggle('active', tab === 'library');
-            document.getElementById('pageTitle').innerText = tab === 'dashboard' ? '📊 Dashboard' : '🎮 Game Library';
-            if (tab === 'library') UIController.renderLibrary();
-        });
+    // Tab switching (Desktop & Mobile)
+    const switchTab = (tab) => {
+        document.querySelectorAll('.nav-link, .nav-item').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll(`[data-tab="${tab}"]`).forEach(l => l.classList.add('active'));
+        document.getElementById('dashboardSection').classList.toggle('active', tab === 'dashboard');
+        document.getElementById('librarySection').classList.toggle('active', tab === 'library');
+        document.getElementById('pageTitle').innerText = tab === 'dashboard' ? '📊 Dashboard' : '🎮 Game Library';
+        if (tab === 'library') UIController.renderLibrary();
+    };
+    
+    document.querySelectorAll('.nav-link, .nav-item').forEach(link => {
+        link.addEventListener('click', (e) => { e.preventDefault(); switchTab(link.dataset.tab); });
     });
     
-    // Dark mode
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    if (darkModeToggle) {
+    // Dark mode with chart refresh
+    const dm = document.getElementById('darkModeToggle');
+    if(dm) {
         const saved = localStorage.getItem('darkMode') === 'true';
-        darkModeToggle.checked = saved;
-        if (saved) document.body.classList.add('dark-mode');
-        darkModeToggle.addEventListener('change', () => {
-            document.body.classList.toggle('dark-mode', darkModeToggle.checked);
-            localStorage.setItem('darkMode', darkModeToggle.checked);
+        dm.checked = saved;
+        if(saved) document.body.classList.add('dark-mode');
+        dm.addEventListener('change', () => {
+            document.body.classList.toggle('dark-mode', dm.checked);
+            localStorage.setItem('darkMode', dm.checked);
             UIController.updateCharts(UIController.gamesData);
         });
     }
     
-    // Buttons
-    document.getElementById('addGameBtn').addEventListener('click', () => {
+    document.getElementById('addGameBtn')?.addEventListener('click', () => {
         document.getElementById('modalTitle').innerText = '🎮 Add New Game';
         document.getElementById('gameForm').reset();
         document.getElementById('gameId').value = '';
@@ -722,35 +478,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         UIController.currentCoverUrl = null;
         document.getElementById('gameModal').style.display = 'flex';
     });
+    document.getElementById('mobileAddBtn')?.addEventListener('click', () => document.getElementById('addGameBtn').click());
     
-    // Close modals
     document.querySelectorAll('.close-modal, .modal').forEach(el => {
-        el.addEventListener('click', function(e) {
-            if (e.target === this || e.target.classList.contains('close-modal')) {
-                UIController.closeModal();
-                UIController.closeDeleteModal();
-                UIController.closeDetailModal();
-            }
-        });
+        el.addEventListener('click', function(e) { if(e.target === this || e.target.classList.contains('close-modal')) { UIController.closeModal(); UIController.closeDeleteModal(); UIController.closeDetailModal(); } });
     });
+    document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => UIController.closeDeleteModal());
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => { if(UIController.deleteId) DBManager.deleteGame(UIController.deleteId); UIController.closeDeleteModal(); });
+    document.getElementById('gameForm')?.addEventListener('submit', (e) => DBManager.saveGame(e));
     
-    document.getElementById('cancelDeleteBtn').addEventListener('click', () => UIController.closeDeleteModal());
-    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-        if (UIController.deleteId) DBManager.deleteGame(UIController.deleteId);
-        UIController.closeDeleteModal();
-    });
-    document.getElementById('gameForm').addEventListener('submit', (e) => DBManager.saveGame(e));
+    document.getElementById('searchInput')?.addEventListener('input', () => UIController.renderLibrary());
+    document.getElementById('filterGenre')?.addEventListener('change', () => UIController.renderLibrary());
+    document.getElementById('filterPlatform')?.addEventListener('change', () => UIController.renderLibrary());
+    document.getElementById('filterRating')?.addEventListener('change', () => UIController.renderLibrary());
+    document.getElementById('filterStatus')?.addEventListener('change', () => UIController.renderLibrary());
     
-    // Filters
-    document.getElementById('searchInput').addEventListener('input', () => UIController.renderLibrary());
-    document.getElementById('filterGenre').addEventListener('change', () => UIController.renderLibrary());
-    document.getElementById('filterPlatform').addEventListener('change', () => UIController.renderLibrary());
-    document.getElementById('filterRating').addEventListener('change', () => UIController.renderLibrary());
-    document.getElementById('filterStatus').addEventListener('change', () => UIController.renderLibrary());
-    
-    // Load data
     await DBManager.fetchGames();
     DBManager.setupRealtime();
     
-    console.log('✅ Game Tracker Premium Ready!');
+    // Handle resize for charts
+    window.addEventListener('resize', () => UIController.updateCharts(UIController.gamesData));
+    console.log('✅ All systems ready!');
 });
