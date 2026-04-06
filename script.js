@@ -1,8 +1,8 @@
 // ============================================
-// GAME TRACKER WITH COVER ART - RAWG API
+// GAME TRACKER WITH AUTO-FILL FROM RAWG API
 // ============================================
 
-// Supabase Configuration
+// Configuration
 const SUPABASE_URL = window.SUPABASE_URL;
 const SUPABASE_KEY = window.SUPABASE_KEY;
 const RAWG_API_KEY = window.RAWG_API_KEY;
@@ -16,21 +16,43 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // State
 let gamesData = [];
 let genreChart, completionChart, ratingChart;
-let coverCache = new Map(); // Cache cover URLs
+let coverCache = new Map();
+let searchTimeout = null;
+let currentCoverUrl = null;
 
 // ============================================
-// COVER ART FUNCTIONS
+// RAWG API FUNCTIONS
 // ============================================
+
+async function searchGamesFromAPI(query) {
+    if (!query || query.length < 2) return [];
+    
+    try {
+        const url = `https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&key=${RAWG_API_KEY}&page_size=10`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.results) {
+            return data.results.map(game => ({
+                id: game.id,
+                name: game.name,
+                cover: game.background_image || null,
+                genres: game.genres?.map(g => g.name).join(', ') || '',
+                platforms: game.platforms?.map(p => p.platform.name).join(', ') || '',
+                rating: game.rating || 0,
+                released: game.released || ''
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Search error:', error);
+        return [];
+    }
+}
 
 async function fetchGameCover(title) {
-    // Check cache first
     if (coverCache.has(title)) {
         return coverCache.get(title);
-    }
-    
-    if (!RAWG_API_KEY || RAWG_API_KEY === 'acb03a4a2dd04337b6b62eb78e325c59') {
-        // Use placeholder if no API key
-        return `https://via.placeholder.com/300x180/8b5cf6/ffffff?text=${encodeURIComponent(title.substring(0,20))}`;
     }
     
     try {
@@ -44,15 +66,12 @@ async function fetchGameCover(title) {
             return coverUrl;
         }
         
-        // Fallback to placeholder
-        const fallback = `https://via.placeholder.com/300x180/8b5cf6/ffffff?text=${encodeURIComponent(title.substring(0,20))}`;
+        const fallback = null;
         coverCache.set(title, fallback);
         return fallback;
     } catch (error) {
         console.log('Cover fetch error:', error);
-        const fallback = `https://via.placeholder.com/300x180/8b5cf6/ffffff?text=${encodeURIComponent(title.substring(0,20))}`;
-        coverCache.set(title, fallback);
-        return fallback;
+        return null;
     }
 }
 
@@ -105,6 +124,108 @@ function showNotification(message, type = 'info') {
 }
 
 // ============================================
+// SEARCH & AUTO-FILL
+// ============================================
+
+function setupGameSearch() {
+    const searchInput = document.getElementById('gameSearchInput');
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+            resultsDiv.innerHTML = '<div style="padding:1rem; text-align:center"><i class="fas fa-spinner fa-pulse"></i> Searching...</div>';
+            resultsDiv.style.display = 'block';
+            
+            const results = await searchGamesFromAPI(query);
+            
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding:1rem; text-align:center">No games found</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = results.map(game => `
+                <div class="search-result-item" data-game='${JSON.stringify(game)}'>
+                    <img src="${game.cover || 'https://via.placeholder.com/50x50/8b5cf6/ffffff?text=?'}" alt="${escapeHtml(game.name)}">
+                    <div class="search-result-info">
+                        <h4>${escapeHtml(game.name)}</h4>
+                        <p>${game.genres || 'No genre'} | ${game.platforms || 'Unknown'}</p>
+                        <p>⭐ ${game.rating}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add click handlers
+            document.querySelectorAll('.search-result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const gameData = JSON.parse(item.dataset.game);
+                    autoFillGameForm(gameData);
+                    resultsDiv.style.display = 'none';
+                    searchInput.value = '';
+                });
+            });
+        }, 500);
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+}
+
+function autoFillGameForm(gameData) {
+    // Fill title
+    document.getElementById('title').value = gameData.name;
+    
+    // Extract main platform (first one)
+    if (gameData.platforms) {
+        const platforms = gameData.platforms.split(',');
+        document.getElementById('platform').value = platforms[0].trim();
+    }
+    
+    // Fill genre
+    if (gameData.genres) {
+        document.getElementById('genre').value = gameData.genres;
+        
+        // Auto-fill tags from genres
+        const tags = gameData.genres.split(',').map(g => g.trim().toLowerCase());
+        if (gameData.released) {
+            tags.push(gameData.released.split('-')[0]); // Add year
+        }
+        document.getElementById('tags').value = tags.join(', ');
+    }
+    
+    // Auto-fill rating from RAWG rating (rounded to nearest 0.5)
+    if (gameData.rating) {
+        const roundedRating = Math.round(gameData.rating * 2) / 2;
+        document.getElementById('rating').value = Math.min(5, Math.max(1, roundedRating));
+    }
+    
+    // Set cover preview
+    if (gameData.cover) {
+        currentCoverUrl = gameData.cover;
+        const coverPreview = document.getElementById('coverPreview');
+        const coverContainer = document.getElementById('coverPreviewContainer');
+        coverPreview.src = gameData.cover;
+        coverContainer.style.display = 'block';
+    }
+    
+    showNotification(`✅ Game "${gameData.name}" auto-filled!`, 'success');
+}
+
+// ============================================
 // SUPABASE CRUD
 // ============================================
 
@@ -142,6 +263,7 @@ async function saveGame(event) {
         rating: parseFloat(document.getElementById('rating')?.value || 3),
         hours_played: parseFloat(document.getElementById('hours_played')?.value || 0),
         status: document.getElementById('status')?.value,
+        cover_url: currentCoverUrl || null,
         updated_at: new Date().toISOString()
     };
     
@@ -149,9 +271,6 @@ async function saveGame(event) {
         showNotification('Title is required!', 'error');
         return;
     }
-    
-    // Clear cache for this title
-    coverCache.delete(game.title);
     
     try {
         if (id) {
@@ -187,7 +306,7 @@ async function deleteGame(id) {
 }
 
 // ============================================
-// RENDER FUNCTIONS WITH COVERS
+// RENDER FUNCTIONS
 // ============================================
 
 async function renderLibrary() {
@@ -212,20 +331,11 @@ async function renderLibrary() {
         return;
     }
     
-    // Show loading state
-    grid.innerHTML = '<div class="loading-covers"><i class="fas fa-spinner fa-pulse"></i> Loading covers...</div>';
-    
-    // Fetch covers for all games
-    const gamesWithCovers = await Promise.all(filtered.map(async (game) => {
-        const coverUrl = await fetchGameCover(game.title);
-        return { ...game, coverUrl };
-    }));
-    
-    // Render cards
-    grid.innerHTML = gamesWithCovers.map(game => `
-        <div class="game-card" data-id="${game.id}" data-status="${game.status}" data-progress="${game.progress}%">
+    grid.innerHTML = filtered.map(game => `
+        <div class="game-card" data-id="${game.id}">
             <div class="game-cover">
-                <img src="${game.coverUrl}" alt="${escapeHtml(game.title)}" loading="lazy"
+                <img src="${game.cover_url || 'https://via.placeholder.com/300x180/8b5cf6/ffffff?text=' + encodeURIComponent(game.title.substring(0,20))}" 
+                     alt="${escapeHtml(game.title)}" loading="lazy"
                      onerror="this.src='https://via.placeholder.com/300x180/8b5cf6/ffffff?text=${encodeURIComponent(game.title.substring(0,20))}'">
                 <div class="progress-overlay">
                     <div class="progress-fill" style="width:${game.progress || 0}%"></div>
@@ -256,7 +366,6 @@ async function renderLibrary() {
         </div>
     `).join('');
     
-    // Attach event listeners
     document.querySelectorAll('.edit-game').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -287,7 +396,6 @@ function updateDashboard() {
 }
 
 function updateCharts() {
-    // Genre distribution
     const genreCount = {};
     gamesData.forEach(g => {
         if (g.genre) genreCount[g.genre] = (genreCount[g.genre] || 0) + 1;
@@ -310,7 +418,6 @@ function updateCharts() {
         });
     }
     
-    // Completion status
     const completionCtx = document.getElementById('completionChart')?.getContext('2d');
     if (completionCtx) {
         const completionData = [
@@ -329,7 +436,6 @@ function updateCharts() {
         });
     }
     
-    // Rating distribution
     const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
     if (ratingCtx) {
         const ratingDist = [0, 0, 0, 0, 0];
@@ -383,6 +489,17 @@ function openEditModal(id) {
         document.getElementById('rating').value = game.rating;
         document.getElementById('hours_played').value = game.hours_played || 0;
         document.getElementById('status').value = game.status;
+        currentCoverUrl = game.cover_url;
+        
+        if (currentCoverUrl) {
+            const coverPreview = document.getElementById('coverPreview');
+            const coverContainer = document.getElementById('coverPreviewContainer');
+            coverPreview.src = currentCoverUrl;
+            coverContainer.style.display = 'block';
+        } else {
+            document.getElementById('coverPreviewContainer').style.display = 'none';
+        }
+        
         document.getElementById('gameModal').style.display = 'flex';
     }
 }
@@ -405,6 +522,10 @@ function closeModal() {
     document.getElementById('gameModal').style.display = 'none';
     document.getElementById('gameForm').reset();
     document.getElementById('gameId').value = '';
+    document.getElementById('coverPreviewContainer').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'none';
+    document.getElementById('gameSearchInput').value = '';
+    currentCoverUrl = null;
 }
 
 function closeDeleteModal() {
@@ -417,8 +538,11 @@ function closeDeleteModal() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Game Tracker with Cover Art Started');
+    console.log('🚀 Game Tracker with Auto-Fill Started');
     console.log('🎨 RAWG API Key:', RAWG_API_KEY ? '✅ Loaded' : '❌ Missing');
+    
+    // Setup search
+    setupGameSearch();
     
     // Tab switching
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -458,6 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('rating').value = 3;
         document.getElementById('hours_played').value = 0;
         document.getElementById('status').value = 'backlog';
+        document.getElementById('coverPreviewContainer').style.display = 'none';
+        document.getElementById('searchResults').style.display = 'none';
+        currentCoverUrl = null;
         document.getElementById('gameModal').style.display = 'flex';
     });
     
@@ -491,5 +618,5 @@ document.addEventListener('DOMContentLoaded', () => {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => fetchGames())
         .subscribe();
     
-    console.log('✅ App Ready with Cover Art!');
+    console.log('✅ App Ready with Auto-Fill Feature!');
 });
