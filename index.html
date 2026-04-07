@@ -1121,16 +1121,6 @@
                     </select>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Date Added</label>
-                    <input type="date" id="date_added">
-                </div>
-                <div class="form-group">
-                    <label>Last Played</label>
-                    <input type="date" id="last_played">
-                </div>
-            </div>
             <button type="submit" class="btn-primary" style="width: 100%;">💾 Save Game</button>
         </form>
     </div>
@@ -1328,6 +1318,10 @@
         const game = gamesData.find(g => g.id == id);
         if (!game) return;
         
+        // Gunakan created_at untuk Date Added, updated_at untuk Last Updated
+        const dateAdded = game.created_at ? new Date(game.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set';
+        const lastUpdated = game.updated_at ? new Date(game.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set';
+        
         const detailHtml = `
             <div class="modal-header">
                 <h3>🎮 Game Details</h3>
@@ -1372,17 +1366,12 @@
                 <div class="detail-stat">
                     <i class="fas fa-calendar-plus"></i>
                     <div class="detail-stat-label">Date Added</div>
-                    <div class="detail-stat-value">${formatDate(game.date_added)}</div>
-                </div>
-                <div class="detail-stat">
-                    <i class="fas fa-calendar-alt"></i>
-                    <div class="detail-stat-label">Last Played</div>
-                    <div class="detail-stat-value">${formatDate(game.last_played)}</div>
+                    <div class="detail-stat-value">${dateAdded}</div>
                 </div>
                 <div class="detail-stat">
                     <i class="fas fa-edit"></i>
                     <div class="detail-stat-label">Last Updated</div>
-                    <div class="detail-stat-value">${formatDate(game.updated_at)}</div>
+                    <div class="detail-stat-value">${lastUpdated}</div>
                 </div>
             </div>
             
@@ -1518,6 +1507,8 @@
         event.preventDefault();
         
         const id = document.getElementById('gameId')?.value;
+        const now = new Date().toISOString();
+        
         const game = {
             title: document.getElementById('title')?.value,
             platform: document.getElementById('platform')?.value || null,
@@ -1528,9 +1519,7 @@
             hours_played: parseFloat(document.getElementById('hours_played')?.value || 0),
             status: document.getElementById('status')?.value,
             cover_url: currentCoverUrl || null,
-            date_added: document.getElementById('date_added')?.value || new Date().toISOString().split('T')[0],
-            last_played: document.getElementById('last_played')?.value || null,
-            updated_at: new Date().toISOString()
+            updated_at: now
         };
         
         if (!game.title) {
@@ -1540,17 +1529,22 @@
         
         try {
             if (id) {
+                // Update existing game
                 await supabaseClient.from('games').update(game).eq('id', id);
                 showNotification('Game updated!', 'success');
             } else {
-                await supabaseClient.from('games').insert([{ ...game, created_at: new Date().toISOString() }]);
+                // Add new game with created_at
+                await supabaseClient.from('games').insert([{ 
+                    ...game, 
+                    created_at: now 
+                }]);
                 showNotification('Game added!', 'success');
             }
             closeModal();
             fetchGames();
         } catch (error) {
             console.error('Error saving game:', error);
-            showNotification('Failed to save game', 'error');
+            showNotification('Failed to save game: ' + error.message, 'error');
         }
     }
 
@@ -1580,8 +1574,6 @@
             document.getElementById('rating').value = game.rating;
             document.getElementById('hours_played').value = game.hours_played || 0;
             document.getElementById('status').value = game.status;
-            document.getElementById('date_added').value = game.date_added || '';
-            document.getElementById('last_played').value = game.last_played || '';
             currentCoverUrl = game.cover_url;
             
             if (currentCoverUrl) {
@@ -1683,9 +1675,6 @@
             document.getElementById('coverPreview').src = gameData.cover;
             document.getElementById('coverPreviewContainer').style.display = 'block';
         }
-        if (!document.getElementById('date_added').value) {
-            document.getElementById('date_added').value = new Date().toISOString().split('T')[0];
-        }
         showNotification(`Game "${gameData.name}" auto-filled!`, 'success');
     }
 
@@ -1720,44 +1709,12 @@
         }
     }
 
-    // Initialize Database Table
-    async function initDatabase() {
-        try {
-            // Check if table exists and has correct structure
-            const { error } = await supabaseClient.from('games').select('id').limit(1);
-            if (error && error.message.includes('relation') && error.message.includes('does not exist')) {
-                console.log('Table does not exist. Please create the table in Supabase with the following SQL:');
-                console.log(`
-                    CREATE TABLE IF NOT EXISTS games (
-                        id SERIAL PRIMARY KEY,
-                        title TEXT NOT NULL,
-                        platform TEXT,
-                        genre TEXT,
-                        tags TEXT,
-                        progress INT DEFAULT 0,
-                        rating FLOAT DEFAULT 3,
-                        hours_played FLOAT DEFAULT 0,
-                        status TEXT DEFAULT 'backlog',
-                        cover_url TEXT,
-                        date_added DATE,
-                        last_played DATE,
-                        created_at TIMESTAMP DEFAULT NOW(),
-                        updated_at TIMESTAMP DEFAULT NOW()
-                    );
-                `);
-            }
-        } catch (e) {
-            console.log('Database check completed');
-        }
-    }
-
     // Initialization
     document.addEventListener('DOMContentLoaded', () => {
         console.log('🚀 Game Tracker Starting...');
         
         setupGameSearch();
         setupDarkMode();
-        initDatabase();
         
         // Tab switching
         document.querySelectorAll('.nav-link, .nav-item, .footer-section a[data-tab]').forEach(el => {
@@ -1779,7 +1736,6 @@
             document.getElementById('rating').value = 3;
             document.getElementById('hours_played').value = 0;
             document.getElementById('status').value = 'backlog';
-            document.getElementById('date_added').value = new Date().toISOString().split('T')[0];
             document.getElementById('coverPreviewContainer').style.display = 'none';
             currentCoverUrl = null;
             document.getElementById('gameModal').style.display = 'flex';
