@@ -4,487 +4,832 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="theme-color" content="#8b5cf6">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-	
-	<!-- ✅ LINK MANIFEST (WAJIB) -->
-	<link rel="manifest" href="manifest.json">
-	
-	 <!-- ✅ ICON UNTUK IPHONE (OPSIONAL TAPI DISARANKAN) -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
-	
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
     <title>GameVault | Premium Game Tracker</title>
     
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     
-    <!-- Tailwind Custom Config -->
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'sans': ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'shimmer': 'shimmer 1.5s infinite',
-                        'fade-in': 'fadeIn 0.4s ease-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                        'pulse-glow': 'pulseGlow 2s infinite',
-                    },
-                    keyframes: {
-                        shimmer: {
-                            '0%': { backgroundPosition: '200% 0' },
-                            '100%': { backgroundPosition: '-200% 0' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(100%)' },
-                            '100%': { transform: 'translateY(0)' },
-                        },
-                        pulseGlow: {
-                            '0%, 100%': { boxShadow: '0 0 0 0 rgba(139, 92, 246, 0.4)' },
-                            '50%': { boxShadow: '0 0 0 8px rgba(139, 92, 246, 0)' },
-                        },
-                    },
-                }
-            }
-        }
-    </script>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
+    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Chart.js -->
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     
     <style>
-        /* Custom CSS untuk efek yang tidak tersedia di Tailwind */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.08);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: rgba(226, 232, 240, 0.5);
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+            --success: #10b981;
+            --danger: #ef4444;
+            --sidebar-bg: rgba(30, 27, 46, 0.95);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark-mode {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.9);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: rgba(51, 65, 85, 0.5);
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --sidebar-bg: rgba(15, 15, 26, 0.95);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+
+        /* No Horizontal Scroll */
+        body, .app-container, .main-content {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Desktop Sidebar - Glassmorphism */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            border-right: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 10;
         }
-        
-        .dark .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
         }
+
+        .logo-area i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-menu { display: flex; flex-direction: column; gap: 0.75rem; }
         
-        /* Shimmer Effect untuk Skeleton Loading */
-        .shimmer {
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-radius: 14px;
+            color: #cbd5e1;
+            transition: var(--transition);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(139, 92, 246, 0.2);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        /* Bottom Navigation Mobile - Glassmorphism */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            z-index: 100;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            min-height: 44px;
+            min-width: 64px;
+        }
+
+        .nav-item:active { transform: scale(0.95); }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-item.active { color: var(--accent); background: rgba(139, 92, 246, 0.15); }
+        .nav-item.fab {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            margin-top: -20px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .content-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            min-height: 44px;
+        }
+        .btn-primary:active { transform: scale(0.97); }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+        .stat-card:active { transform: scale(0.98); }
+        .stat-card i { font-size: 2rem; background: linear-gradient(135deg, var(--accent), #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .stat-card h3 { font-size: 0.75rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; }
+        .stat-card p { font-size: 1.8rem; font-weight: 700; }
+
+        /* Charts Responsive */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+        }
+        .chart-card canvas { max-height: 250px; width: 100%; }
+        .chart-card h4 { text-align: center; margin-top: 1rem; color: var(--text-secondary); }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 2rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 60px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-primary);
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+        }
+        .search-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            min-height: 40px;
+        }
+
+        select {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: var(--text-primary);
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        /* Games Grid - Mobile 2 Columns */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+        @media (min-width: 640px) {
+            .games-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        }
+
+        /* Game Card - Portrait 2:3 */
+        .game-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            animation: fadeInUp 0.4s ease;
+        }
+        .game-card:active { transform: scale(0.98); }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-cover {
+            position: relative;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e1b2e, #2d2a4a);
+        }
+        .game-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .game-card:hover .game-cover img { transform: scale(1.05); }
+
+        .cover-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            pointer-events: none;
+        }
+
+        .progress-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a855f7);
+            transition: width 0.3s;
+        }
+
+        .card-content { padding: 0.75rem; }
+        .game-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .game-title small { font-size: 0.6rem; color: var(--text-secondary); }
+
+        .rating-stars {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin: 6px 0;
+        }
+        .rating-stars i { font-size: 0.7rem; color: #fbbf24; }
+
+        .game-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 6px 0;
+        }
+        .tag {
+            background: var(--bg-primary);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: var(--accent);
+        }
+
+        /* Touch-friendly buttons (min 44px) */
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .card-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            min-width: 60px;
+            min-height: 44px;
+            transition: var(--transition);
+        }
+        .card-actions button:active {
+            background: rgba(139, 92, 246, 0.2);
+            transform: scale(0.95);
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--border) 25%, var(--bg-primary) 50%, var(--border) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
-        
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(139, 92, 246, 0.1);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #8b5cf6, #a855f7);
-            border-radius: 10px;
-        }
-        
-        /* Hide scrollbar for mobile but keep functionality */
-        @media (max-width: 768px) {
-            ::-webkit-scrollbar {
-                width: 0px;
-            }
-        }
-        
-        /* Smooth transitions */
-        * {
-            transition: all 0.2s ease;
-        }
-        
-        /* Prevent horizontal scroll */
-        body {
-            overflow-x: hidden;
-        }
-        
-        /* Bottom Navigation untuk Mobile */
-        .bottom-nav {
-            transition: transform 0.3s ease;
-        }
-        
-        /* Touch-friendly tap targets */
-        .tap-target {
-            min-height: 44px;
-            min-width: 44px;
-        }
-        
-        /* Gradient borders */
-        .gradient-border {
-            position: relative;
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+        .skeleton-cover { aspect-ratio: 2 / 3; width: 100%; border-radius: 20px 20px 0 0; }
+        .skeleton-title { height: 14px; width: 70%; border-radius: 8px; margin: 8px 0; }
+        .skeleton-text { height: 10px; width: 90%; border-radius: 6px; margin: 6px 0; }
+
+        /* Search Dropdown */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 320px;
+            overflow-y: auto;
+            margin-top: 8px;
             border-radius: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            z-index: 1000;
+            display: none;
         }
-        
-        /* Loading spinner */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(139, 92, 246, 0.2);
-            border-top-color: #8b5cf6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Chart container responsive */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4 / 3;
-        }
-        
-        /* Game card hover effect */
-        .game-card {
-            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.3s ease;
-        }
-        
-        .game-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.25);
-        }
-        
-        /* Image fallback pattern */
-        .image-fallback {
-            background: linear-gradient(135deg, #1e1b2e, #2d2a4a);
+        .search-result-item {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 15px;
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--glass-border);
+            min-height: 70px;
         }
-        
-        /* Modal bottom sheet untuk mobile */
+        .search-result-item:active { background: var(--accent); color: white; }
+        .search-result-item img { width: 48px; height: 48px; object-fit: cover; border-radius: 12px; }
+
+        /* Modals - Glassmorphism + Bottom Sheet on Mobile */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Bottom Sheet for Mobile */
         @media (max-width: 768px) {
             .modal-content {
+                width: 100%;
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 28px 28px 0 0;
                 position: fixed;
                 bottom: 0;
                 left: 0;
-                right: 0;
-                border-radius: 28px 28px 0 0;
-                animation: slideUp 0.3s ease-out;
+                animation: bottomSheetIn 0.3s ease;
             }
-            
-            @keyframes slideUp {
+            @keyframes bottomSheetIn {
                 from { transform: translateY(100%); }
                 to { transform: translateY(0); }
             }
         }
+
+        /* Detail Modal */
+        .detail-hero {
+            position: relative;
+            height: 240px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 28px 28px 0 0;
+        }
+        .detail-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, var(--bg-secondary), transparent);
+        }
+        .detail-content { padding: 1.5rem; }
+        .detail-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-description {
+            line-height: 1.6;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+        .detail-link {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 40px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            min-height: 44px;
+        }
+
+        /* Group Section */
+        .group-section { margin-bottom: 2rem; }
+        .group-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        /* Empty State Premium */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+        }
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            text-align: center;
+            padding: 10px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .pull-to-refresh i { display: inline-block; transition: transform 0.3s; }
+
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        label { font-weight: 500; display: block; margin-bottom: 6px; font-size: 0.85rem; }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 48px;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+
+        .cover-preview {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            border: 2px solid var(--accent);
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            color: white;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 26px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            border-radius: 34px;
+            transition: 0.3s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        input:checked + .slider { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive Mobile */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 1rem; padding-bottom: 80px; }
+            .bottom-nav { display: flex; }
+            .content-header h1 { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+            .stat-card { padding: 1rem; }
+            .stat-card p { font-size: 1.3rem; }
+            .stat-card i { font-size: 1.5rem; }
+            .filter-bar { flex-direction: column; border-radius: 20px; }
+            .search-box, select { width: 100%; }
+            .game-title { font-size: 0.75rem; }
+            .form-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 font-sans antialiased transition-colors duration-300 overflow-x-hidden">
-    
+<body>
+<div class="app-container">
     <!-- Desktop Sidebar -->
-    <aside class="fixed left-0 top-0 h-full w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-800 z-20 hidden md:flex flex-col">
-        <div class="p-6 border-b border-gray-200 dark:border-gray-800">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                    <i class="fas fa-dice-d6 text-white text-xl"></i>
-                </div>
-                <span class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">GameVault</span>
-            </div>
-        </div>
-        
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="#" data-tab="dashboard" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all">
-                <i class="fas fa-chart-pie w-5"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" data-tab="library" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all">
-                <i class="fas fa-gamepad w-5"></i>
-                <span>My Library</span>
-            </a>
+    <aside class="sidebar">
+        <div class="logo-area"><i class="fas fa-dice-d6"></i><span>GameVault</span></div>
+        <nav class="nav-menu">
+            <a class="nav-link active" data-tab="dashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+            <a class="nav-link" data-tab="library"><i class="fas fa-gamepad"></i><span>My Library</span></a>
         </nav>
-        
-        <div class="p-4 border-t border-gray-200 dark:border-gray-800">
-            <div class="flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                <i class="fas fa-moon text-gray-500"></i>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="darkModeToggle" class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                </label>
-                <i class="fas fa-sun text-gray-500"></i>
-            </div>
+        <div class="dark-mode-toggle">
+            <i class="fas fa-moon"></i>
+            <label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider round"></span></label>
+            <i class="fas fa-sun"></i>
         </div>
     </aside>
-    
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-item active" data-tab="dashboard"><i class="fas fa-chart-pie"></i><span>Stats</span></button>
+        <button class="nav-item fab" id="mobileAddBtn"><i class="fas fa-plus"></i><span>Add</span></button>
+        <button class="nav-item" data-tab="library"><i class="fas fa-gamepad"></i><span>Library</span></button>
+    </div>
+
     <!-- Main Content -->
-    <main class="md:ml-72 min-h-screen pb-24 md:pb-8">
-        <!-- Header -->
-        <header class="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 px-4 py-4 md:px-8">
-            <div class="flex justify-between items-center">
-                <h1 id="pageTitle" class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">Dashboard</h1>
-                <button id="addGameBtn" class="tap-target hidden md:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all">
-                    <i class="fas fa-plus"></i>
-                    <span>Add Game</span>
-                </button>
-            </div>
-        </header>
+    <main class="main-content" id="mainContent">
+        <div class="pull-to-refresh" id="pullToRefresh">
+            <i class="fas fa-arrow-down"></i> <span>Pull down to refresh</span>
+        </div>
         
-        <div class="p-4 md:p-8">
-            <!-- Dashboard Section -->
-            <section id="dashboardSection" class="space-y-6">
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="glass-card rounded-2xl p-4 md:p-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <i class="fas fa-gamepad text-purple-600 dark:text-purple-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Games</p>
-                                <p id="totalGames" class="text-2xl md:text-3xl font-bold">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-4 md:p-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                                <i class="fas fa-trophy text-emerald-600 dark:text-emerald-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Completed</p>
-                                <p id="completedGames" class="text-2xl md:text-3xl font-bold">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-4 md:p-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <i class="fas fa-clock text-blue-600 dark:text-blue-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Hours</p>
-                                <p id="totalHours" class="text-2xl md:text-3xl font-bold">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-4 md:p-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                                <i class="fas fa-star text-amber-600 dark:text-amber-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Avg Rating</p>
-                                <p id="avgRating" class="text-2xl md:text-3xl font-bold">0.0</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Charts Row - 2 Columns Symmetric -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass-card rounded-2xl p-6">
-                        <h4 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Top Genres</h4>
-                        <div class="chart-container">
-                            <canvas id="genreChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-6">
-                        <h4 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Completion Status</h4>
-                        <div class="chart-container">
-                            <canvas id="completionChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-6 md:col-span-2">
-                        <h4 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-4">Rating Distribution</h4>
-                        <div class="chart-container">
-                            <canvas id="ratingChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Library Section -->
-            <section id="librarySection" class="space-y-6 hidden">
-                <!-- Filter Bar -->
-                <div class="glass-card rounded-2xl p-4 flex flex-wrap gap-3">
-                    <div class="flex-1 min-w-[200px]">
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                            <input type="text" id="searchInput" placeholder="Search games..." class="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all">
-                        </div>
-                    </div>
-                    <select id="filterGenre" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl focus:ring-2 focus:ring-purple-500">
-                        <option value="">All Genres</option>
-                    </select>
-                    <select id="filterPlatform" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl focus:ring-2 focus:ring-purple-500">
-                        <option value="">All Platforms</option>
-                    </select>
-                    <select id="filterRating" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl focus:ring-2 focus:ring-purple-500">
-                        <option value="">All Ratings</option>
-                        <option value="5">5★ Only</option>
-                        <option value="4">4★ & Up</option>
-                        <option value="3">3★ & Up</option>
-                    </select>
-                    <select id="filterStatus" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl focus:ring-2 focus:ring-purple-500">
-                        <option value="">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="playing">Playing</option>
-                        <option value="backlog">Backlog</option>
-                    </select>
-                </div>
-                
-                <!-- Games Grid - Responsive 2 columns on mobile -->
-                <div id="gamesGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                    <!-- Game cards will be inserted here -->
-                </div>
-            </section>
-        </div>
+        <header class="content-header">
+            <h1 id="pageTitle">Dashboard</h1>
+            <button id="addGameBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Game</button>
+        </header>
+
+        <!-- Dashboard -->
+        <section id="dashboardSection" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-gamepad"></i><div><h3>Total Games</h3><p id="totalGames">0</p></div></div>
+                <div class="stat-card"><i class="fas fa-trophy"></i><div><h3>Completed</h3><p id="completedGames">0</p></div></div>
+                <div class="stat-card"><i class="fas fa-clock"></i><div><h3>Total Hours</h3><p id="totalHours">0</p></div></div>
+                <div class="stat-card"><i class="fas fa-star"></i><div><h3>Avg Rating</h3><p id="avgRating">0.0</p></div></div>
+            </div>
+            <div class="charts-row">
+                <div class="chart-card"><canvas id="genreChart"></canvas><h4>Top Genres</h4></div>
+                <div class="chart-card"><canvas id="completionChart"></canvas><h4>Completion Status</h4></div>
+                <div class="chart-card"><canvas id="ratingChart"></canvas><h4>Rating Distribution</h4></div>
+            </div>
+        </section>
+
+        <!-- Library -->
+        <section id="librarySection" class="section">
+            <div class="filter-bar">
+                <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search..."></div>
+                <select id="filterGenre"><option value="">All Genres</option></select>
+                <select id="filterPlatform"><option value="">All Platforms</option></select>
+                <select id="filterRating"><option value="">Rating</option><option value="5">5★</option><option value="4">4★+</option></select>
+                <select id="filterStatus"><option value="">Status</option><option value="completed">Completed</option><option value="playing">Playing</option><option value="backlog">Backlog</option></select>
+            </div>
+            <div id="gamesGrid" class="games-grid"></div>
+        </section>
     </main>
-    
-    <!-- Bottom Navigation (Mobile Only) -->
-    <div class="bottom-nav fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 md:hidden z-30">
-        <div class="flex justify-around items-center py-2">
-            <button data-tab="dashboard" class="nav-item-mobile flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all">
-                <i class="fas fa-chart-pie text-xl"></i>
-                <span class="text-xs">Stats</span>
-            </button>
-            <button id="mobileAddBtn" class="flex flex-col items-center gap-1 px-5 py-2 -mt-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg shadow-purple-500/30">
-                <i class="fas fa-plus text-white text-xl"></i>
-                <span class="text-white text-xs">Add</span>
-            </button>
-            <button data-tab="library" class="nav-item-mobile flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all">
-                <i class="fas fa-gamepad text-xl"></i>
-                <span class="text-xs">Library</span>
-            </button>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="gameModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" style="display:flex; justify-content:space-between; padding:1.5rem 1.5rem 0">
+            <h3 id="modalTitle">Add New Game</h3>
+            <span class="close-modal" style="cursor:pointer; font-size:2rem">&times;</span>
         </div>
-    </div>
-    
-    <!-- Modal Add/Edit Game (Bottom Sheet on Mobile) -->
-    <div id="gameModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-end md:items-center justify-center">
-        <div class="modal-content bg-white dark:bg-gray-900 w-full md:max-w-lg md:rounded-2xl max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
-                <h3 id="modalTitle" class="text-xl font-bold">Add New Game</h3>
-                <button class="close-modal w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    <i class="fas fa-times text-gray-500"></i>
-                </button>
+        <div style="padding:1.5rem">
+            <div style="position:relative; margin-bottom:1rem">
+                <input type="text" id="gameSearchInput" placeholder="🔍 Search game from RAWG..." style="width:100%; padding:14px; border-radius:50px; border:1px solid var(--border); background:var(--bg-primary)">
+                <div id="searchResults" class="search-results"></div>
             </div>
-            <div class="p-4">
-                <!-- Search from RAWG -->
-                <div class="relative mb-4">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="gameSearchInput" placeholder="Search game from RAWG..." class="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0 focus:ring-2 focus:ring-purple-500">
-                    <div id="searchResults" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-64 overflow-y-auto z-10 hidden"></div>
+            <div style="text-align:center; margin:10px 0">— OR —</div>
+            <form id="gameForm">
+                <input type="hidden" id="gameId">
+                <div class="form-group"><label>Title *</label><input type="text" id="title" required></div>
+                <div id="coverPreviewContainer" style="display:none"><img id="coverPreview" class="cover-preview"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Platform</label><input type="text" id="platform"></div>
+                    <div class="form-group"><label>Genre</label><input type="text" id="genre"></div>
                 </div>
-                <div class="text-center text-gray-400 text-sm mb-4">— OR —</div>
-                <form id="gameForm">
-                    <input type="hidden" id="gameId">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Game Title *</label>
-                        <input type="text" id="title" required class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0 focus:ring-2 focus:ring-purple-500">
-                    </div>
-                    <div id="coverPreviewContainer" class="mb-4 hidden">
-                        <img id="coverPreview" class="w-full h-40 object-cover rounded-xl">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Platform</label>
-                            <input type="text" id="platform" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Genre</label>
-                            <input type="text" id="genre" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Tags (comma)</label>
-                        <input type="text" id="tags" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                    </div>
-                    <div class="grid grid-cols-3 gap-3 mb-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Progress</label>
-                            <input type="number" id="progress" min="0" max="100" value="0" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Rating</label>
-                            <input type="number" id="rating" step="0.5" min="1" max="5" value="3" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Hours</label>
-                            <input type="number" id="hours_played" step="0.5" value="0" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                        </div>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium mb-1">Status</label>
-                        <select id="status" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-0">
-                            <option value="backlog">📚 Backlog</option>
-                            <option value="playing">🎮 Playing</option>
-                            <option value="completed">🏆 Completed</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
-                        <i class="fas fa-save mr-2"></i> Save Game
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full mx-4">
-            <div class="text-center">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <i class="fas fa-trash-alt text-red-500 text-2xl"></i>
+                <div class="form-group"><label>Tags</label><input type="text" id="tags"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Progress (%)</label><input type="number" id="progress" min="0" max="100" value="0"></div>
+                    <div class="form-group"><label>Rating (1-5)</label><input type="number" id="rating" step="0.5" min="1" max="5" value="3"></div>
                 </div>
-                <h3 class="text-xl font-bold mb-2">Delete Game?</h3>
-                <p class="text-gray-500 dark:text-gray-400 mb-6">This action cannot be undone.</p>
-                <div class="flex gap-3">
-                    <button id="cancelDeleteBtn" class="flex-1 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl font-medium">Cancel</button>
-                    <button id="confirmDeleteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium">Delete</button>
+                <div class="form-row">
+                    <div class="form-group"><label>Hours</label><input type="number" id="hours_played" step="0.5" value="0"></div>
+                    <div class="form-group"><label>Status</label><select id="status"><option value="backlog">📚 Backlog</option><option value="playing">🎮 Playing</option><option value="completed">🏆 Completed</option></select></div>
                 </div>
-            </div>
+                <button type="submit" class="btn-primary" style="width:100%">💾 Save Game</button>
+            </form>
         </div>
     </div>
-    
-    <!-- Game Detail Modal -->
-    <div id="detailModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto">
-            <div id="detailHero" class="h-48 bg-cover bg-center rounded-t-2xl relative">
-                <button class="close-modal absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="detailContent" class="p-6"></div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="modal">
+    <div class="modal-content" style="max-width:700px; padding:0; overflow:hidden">
+        <div style="position:relative">
+            <div id="detailHero" class="detail-hero"></div>
+            <span class="close-modal" style="position:absolute; top:20px; right:20px; cursor:pointer; background:rgba(0,0,0,0.5); width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:white; font-size:1.5rem">&times;</span>
+        </div>
+        <div id="detailContent" class="detail-content"></div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width:400px">
+        <h3>🗑️ Delete Game</h3>
+        <p>Are you sure?</p>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem">
+            <button id="confirmDeleteBtn" style="background:#ef4444; border:none; padding:12px 24px; border-radius:40px; color:white; cursor:pointer; min-width:100px">Delete</button>
+            <button id="cancelDeleteBtn" style="background:var(--border); border:none; padding:12px 24px; border-radius:40px; cursor:pointer; min-width:100px">Cancel</button>
         </div>
     </div>
-    
-    <script>
-        // Environment Variables
-        window.SUPABASE_URL = 'https://inwjlxiqxtztjtrttqke.supabase.co';
-        window.SUPABASE_KEY = 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
-        window.RAWG_API_KEY = 'acb03a4a2dd04337b6b62eb78e325c59';
-    </script>
-    <script src="script.js"></script>
+</div>
+
+<script>
+    window.SUPABASE_URL = 'https://inwjlxiqxtztjtrttqke.supabase.co';
+    window.SUPABASE_KEY = 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
+    window.RAWG_API_KEY = 'acb03a4a2dd04337b6b62eb78e325c59';
+</script>
+<script src="script.js"></script>
 </body>
 </html>
