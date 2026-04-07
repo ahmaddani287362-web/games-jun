@@ -1,5 +1,5 @@
 // ============================================
-// GAME TRACKER ULTRA-PREMIUM - PURE CSS VERSION
+// GAME TRACKER ULTRA-PREMIUM - FINAL VERSION
 // ============================================
 
 let supabaseClient = null;
@@ -25,7 +25,7 @@ function vibrate() {
 
 function showNotification(msg, type) {
     const notif = document.createElement('div');
-    notif.className = `fixed bottom-24 left-4 right-4 md:left-auto md:right-8 z-50 p-3 rounded-xl text-white text-sm shadow-xl animate-fade-in`;
+    notif.className = `fixed bottom-24 left-4 right-4 md:left-auto md:right-8 z-50 p-3 rounded-xl text-white text-sm shadow-xl`;
     notif.style.background = type === 'success' 
         ? 'linear-gradient(135deg, #10b981, #059669)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)';
@@ -64,7 +64,7 @@ function getStatusBadge(status) {
 }
 
 // ============================================
-// RENDER GAME CARD - PREMIUM 3:4 ASPECT RATIO
+// RENDER FUNCTIONS
 // ============================================
 
 function renderGameCard(game) {
@@ -83,25 +83,13 @@ function renderGameCard(game) {
                 </div>
             </div>
             <div class="card-content">
-                <div class="game-title">
-                    ${escapeHtml(game.title)} 
-                    <small>${escapeHtml(game.platform) || '-'}</small>
-                </div>
+                <div class="game-title">${escapeHtml(game.title)} <small>${escapeHtml(game.platform) || '-'}</small></div>
                 ${getStatusBadge(game.status)}
-                <div class="rating-stars">
-                    ${renderStars(rating)} 
-                    <span>${hours}h</span>
-                </div>
-                <div class="game-meta">
-                    <span class="tag">${escapeHtml(game.genre) || 'General'}</span>
-                </div>
+                <div class="rating-stars">${renderStars(rating)} <span>${hours}h</span></div>
+                <div class="game-meta"><span class="tag">${escapeHtml(game.genre) || 'General'}</span></div>
                 <div class="card-actions">
-                    <button class="edit-game" data-id="${game.id}">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="delete-game" data-id="${game.id}">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
+                    <button class="edit-game" data-id="${game.id}"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="delete-game" data-id="${game.id}"><i class="fas fa-trash-alt"></i> Delete</button>
                 </div>
             </div>
         </div>
@@ -148,7 +136,7 @@ function showSkeletons() {
     const grid = document.getElementById('gamesGrid');
     if (!grid) return;
     grid.innerHTML = Array(8).fill(0).map(() => `
-        <div style="background: var(--surface); border-radius: 16px; overflow: hidden;">
+        <div style="background: var(--surface); border-radius: 20px; overflow: hidden;">
             <div class="skeleton skeleton-cover"></div>
             <div style="padding: 0.8rem;">
                 <div class="skeleton skeleton-title"></div>
@@ -175,13 +163,7 @@ async function renderLibrary() {
     if (!grid) return;
     
     if (!filtered.length) {
-        grid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1;">
-                <i class="fas fa-gamepad"></i>
-                <h3>No Games Found</h3>
-                <p>Add your first game to get started!</p>
-            </div>
-        `;
+        grid.innerHTML = `<div class="empty-state"><i class="fas fa-gamepad"></i><h3>No Games Found</h3><p>Add your first game to get started!</p></div>`;
         return;
     }
     
@@ -225,7 +207,7 @@ function attachEvents() {
 }
 
 // ============================================
-// GAME DETAIL MODAL
+// GAME DETAIL
 // ============================================
 
 async function openGameDetail(id, title) {
@@ -283,10 +265,8 @@ function openEditModal(id) {
         currentCoverUrl = game.cover_url;
         
         if (currentCoverUrl) {
-            const preview = document.getElementById('coverPreview');
-            const container = document.getElementById('coverPreviewContainer');
-            preview.src = currentCoverUrl;
-            container.style.display = 'block';
+            document.getElementById('coverPreview').src = currentCoverUrl;
+            document.getElementById('coverPreviewContainer').style.display = 'block';
         }
         document.getElementById('gameModal').style.display = 'flex';
     }
@@ -389,89 +369,39 @@ function updateCharts() {
     const isDark = document.body.classList.contains('dark-mode');
     const textColor = isDark ? '#cbd5e1' : '#475569';
     
-    // Genre Chart
     const genreCtx = document.getElementById('genreChart')?.getContext('2d');
     if (genreCtx) {
         const genreCount = {};
         gamesData.forEach(g => { if (g.genre) genreCount[g.genre] = (genreCount[g.genre] || 0) + 1; });
         const topGenres = Object.entries(genreCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        
         if (genreChart) genreChart.destroy();
         genreChart = new Chart(genreCtx, {
             type: 'doughnut',
-            data: {
-                labels: topGenres.map(g => g[0]),
-                datasets: [{
-                    data: topGenres.map(g => g[1]),
-                    backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'],
-                    borderWidth: 0,
-                    hoverOffset: 15
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                cutout: '65%',
-                plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 11 } } } }
-            }
+            data: { labels: topGenres.map(g=>g[0]), datasets: [{ data: topGenres.map(g=>g[1]), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 11 } } } } }
         });
     }
     
-    // Completion Chart
     const completionCtx = document.getElementById('completionChart')?.getContext('2d');
     if (completionCtx) {
-        const compData = [
-            gamesData.filter(g => g.status === 'completed').length,
-            gamesData.filter(g => g.status === 'playing').length,
-            gamesData.filter(g => g.status === 'backlog').length
-        ];
+        const compData = [gamesData.filter(g=>g.status==='completed').length, gamesData.filter(g=>g.status==='playing').length, gamesData.filter(g=>g.status==='backlog').length];
         if (completionChart) completionChart.destroy();
         completionChart = new Chart(completionCtx, {
             type: 'bar',
-            data: {
-                labels: ['Completed', 'Playing', 'Backlog'],
-                datasets: [{ label: 'Games', data: compData, backgroundColor: '#3b82f6', borderRadius: 8 }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { ticks: { color: textColor } } }
-            }
+            data: { labels: ['Completed', 'Playing', 'Backlog'], datasets: [{ label: 'Games', data: compData, backgroundColor: '#3b82f6', borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { ticks: { color: textColor } } } }
         });
     }
     
-    // Rating Chart
     const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
     if (ratingCtx) {
         const ratingDist = [0,0,0,0,0];
-        gamesData.forEach(g => {
-            if (g.rating >= 1 && g.rating <= 5) ratingDist[Math.floor(g.rating) - 1]++;
-        });
+        gamesData.forEach(g => { if(g.rating>=1 && g.rating<=5) ratingDist[Math.floor(g.rating)-1]++; });
         if (ratingChart) ratingChart.destroy();
         ratingChart = new Chart(ratingCtx, {
             type: 'line',
-            data: {
-                labels: ['★1', '★2', '★3', '★4', '★5'],
-                datasets: [{
-                    label: 'Games',
-                    data: ratingDist,
-                    borderColor: '#f59e0b',
-                    backgroundColor: 'rgba(245,158,11,0.1)',
-                    borderWidth: 3,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 4,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#f59e0b'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { ticks: { color: textColor } } }
-            }
+            data: { labels: ['★1', '★2', '★3', '★4', '★5'], datasets: [{ label: 'Games', data: ratingDist, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 3, tension: 0.3, fill: true, pointRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { ticks: { color: textColor } } } }
         });
     }
 }
@@ -594,13 +524,9 @@ function switchTab(tab) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎮 Ultra-Premium Game Tracker Starting...');
     
-    // Initialize Supabase
     supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
-    
-    // Setup features
     setupGameSearch();
     
-    // Tab switching
     document.querySelectorAll('.nav-link, .nav-item').forEach(el => {
         el.addEventListener('click', (e) => {
             e.preventDefault();
@@ -609,7 +535,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Dark mode
     const darkToggle = document.getElementById('darkModeToggle');
     if (darkToggle) {
         const saved = localStorage.getItem('darkMode') === 'true';
@@ -622,7 +547,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Add game buttons
     document.getElementById('addGameBtn').addEventListener('click', () => {
         document.getElementById('modalTitle').innerText = 'Add New Game';
         document.getElementById('gameForm').reset();
@@ -636,7 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addGameBtn').click();
     });
     
-    // Close modals
     document.querySelectorAll('.close-modal, .modal').forEach(el => {
         el.addEventListener('click', function(e) {
             if (e.target === this || e.target.classList.contains('close-modal')) {
@@ -647,25 +570,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Delete buttons
     document.getElementById('confirmDeleteBtn').addEventListener('click', deleteGame);
     document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
-    
-    // Save form
     document.getElementById('gameForm').addEventListener('submit', saveGame);
     
-    // Filters
     document.getElementById('searchInput').addEventListener('input', () => renderLibrary());
     document.getElementById('filterGenre').addEventListener('change', renderLibrary);
     document.getElementById('filterPlatform').addEventListener('change', renderLibrary);
     document.getElementById('filterRating').addEventListener('change', renderLibrary);
     document.getElementById('filterStatus').addEventListener('change', renderLibrary);
     
-    // Initial fetch
     fetchGames();
-    
-    // Realtime subscription
     supabaseClient.channel('games').on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => fetchGames()).subscribe();
-    
-    console.log('✅ Ready!');
 });

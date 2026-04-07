@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <meta name="theme-color" content="#8b5cf6">
+    <meta name="theme-color" content="#3b82f6">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>GameVault | Ultra-Premium Game Tracker</title>
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     
@@ -26,18 +25,18 @@
     
     <style>
         /* ============================================
-           ULTRA-PREMIUM CSS - PURE CSS
-           Dark Theme | Glassmorphism | Professional
+           ULTRA-PREMIUM CSS - FINAL VERSION
+           Desktop: Wider gutter, depth shadow, smooth hover
+           Mobile: Bottom nav, 2 columns, blur header
            ============================================ */
         
         /* ---------- CSS VARIABLES ---------- */
         :root {
-            /* Deep Charcoal & Midnight Blue Theme */
             --bg-primary: #0a0a0a;
             --bg-secondary: #121212;
             --bg-tertiary: #1a1a1a;
             --surface: #1e1e1e;
-            --surface-hover: #2a2a2a;
+            --surface-hover: #252525;
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
             --text-muted: #6b6b6b;
@@ -50,7 +49,7 @@
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --glass-bg: rgba(18, 18, 18, 0.8);
+            --glass-bg: rgba(18, 18, 18, 0.85);
             --glass-border: rgba(255, 255, 255, 0.05);
             --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
@@ -108,7 +107,7 @@
             min-height: 100vh;
         }
 
-        /* Desktop Sidebar - Glassmorphism Premium */
+        /* Desktop Sidebar */
         .sidebar {
             width: 280px;
             background: var(--glass-bg);
@@ -155,7 +154,6 @@
             color: transparent;
         }
 
-        /* Navigation Menu */
         .nav-menu {
             display: flex;
             flex-direction: column;
@@ -176,10 +174,7 @@
             position: relative;
             overflow: hidden;
         }
-        .nav-link i { 
-            width: 24px; 
-            font-size: 1.2rem;
-        }
+        .nav-link i { width: 24px; font-size: 1.2rem; }
         .nav-link::before {
             content: '';
             position: absolute;
@@ -192,20 +187,14 @@
             opacity: 0.1;
             z-index: -1;
         }
-        .nav-link:hover::before {
-            width: 100%;
-        }
-        .nav-link:hover {
-            color: white;
-            transform: translateX(5px);
-        }
+        .nav-link:hover::before { width: 100%; }
+        .nav-link:hover { color: white; transform: translateX(5px); }
         .nav-link.active {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1));
             color: var(--accent);
             border-left: 3px solid var(--accent);
         }
 
-        /* Dark Mode Toggle */
         .dark-mode-toggle {
             display: flex;
             align-items: center;
@@ -215,21 +204,13 @@
             border-radius: 40px;
             border: 1px solid var(--border);
         }
-        .dark-mode-toggle i {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
         .switch {
             position: relative;
             display: inline-block;
             width: 52px;
             height: 26px;
         }
-        .switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute;
             cursor: pointer;
@@ -249,12 +230,8 @@
             border-radius: 50%;
             transition: 0.3s;
         }
-        input:checked + .slider {
-            background: var(--accent-gradient);
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+        input:checked + .slider { background: var(--accent-gradient); }
+        input:checked + .slider:before { transform: translateX(26px); }
 
         /* ============================================
            MAIN CONTENT
@@ -262,21 +239,34 @@
         .main-content {
             flex: 1;
             margin-left: 280px;
-            padding: 2rem 2rem 2rem 2rem;
             min-height: 100vh;
         }
 
-        /* Header */
+        /* ============================================
+           HEADER - BLUR EFFECT SAAT SCROLL
+           ============================================ */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 15;
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
         .content-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            padding: 1.5rem 2rem;
             flex-wrap: wrap;
             gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
         .content-header h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--text-primary), var(--accent));
             -webkit-background-clip: text;
@@ -284,7 +274,7 @@
             color: transparent;
         }
 
-        /* Premium Buttons */
+        /* Premium Button */
         .btn-primary {
             background: var(--accent-gradient);
             border: none;
@@ -304,12 +294,18 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px var(--accent-glow);
         }
-        .btn-primary:active {
-            transform: translateY(1px);
+
+        /* ============================================
+           CONTAINER & WHITE SPACE
+           ============================================ */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
         /* ============================================
-           STATS CARDS - GLASSMORPHISM
+           STATS CARDS
            ============================================ */
         .stats-grid {
             display: grid;
@@ -319,7 +315,6 @@
         }
         .stat-card {
             background: var(--surface);
-            backdrop-filter: blur(10px);
             padding: 1.5rem;
             border-radius: 24px;
             display: flex;
@@ -327,11 +322,13 @@
             gap: 1rem;
             border: 1px solid var(--border);
             transition: var(--transition);
+            box-shadow: var(--shadow-sm);
         }
         .stat-card:hover {
             transform: translateY(-4px);
             background: var(--surface-hover);
             border-color: var(--accent);
+            box-shadow: var(--shadow-lg);
         }
         .stat-card i { 
             font-size: 2rem; 
@@ -354,7 +351,7 @@
         }
 
         /* ============================================
-           CHARTS - PREMIUM STYLING
+           CHARTS
            ============================================ */
         .charts-row {
             display: grid;
@@ -364,14 +361,15 @@
         }
         .chart-card {
             background: var(--surface);
-            backdrop-filter: blur(10px);
             border-radius: 24px;
             padding: 1.5rem;
             border: 1px solid var(--border);
             transition: var(--transition);
+            box-shadow: var(--shadow-sm);
         }
         .chart-card:hover {
             border-color: var(--accent);
+            box-shadow: var(--shadow-md);
         }
         .chart-card h4 { 
             text-align: center; 
@@ -379,7 +377,6 @@
             color: var(--text-muted); 
             font-weight: 500;
             font-size: 0.85rem;
-            letter-spacing: 0.5px;
         }
 
         /* ============================================
@@ -391,10 +388,10 @@
             gap: 12px;
             margin-bottom: 2rem;
             background: var(--surface);
-            backdrop-filter: blur(10px);
             padding: 1rem 1.5rem;
             border-radius: 60px;
             border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
         .search-box {
             flex: 1;
@@ -410,9 +407,6 @@
         .search-box:focus-within {
             border-color: var(--accent);
             box-shadow: 0 0 0 2px var(--accent-glow);
-        }
-        .search-box i {
-            color: var(--text-muted);
         }
         .search-box input {
             flex: 1;
@@ -439,32 +433,32 @@
         }
 
         /* ============================================
-           GAMES GRID - 4 KOLOM DESKTOP, 2 KOLOM MOBILE
+           GAMES GRID - DESKTOP 4 KOLOM, GUTTER LEBAR
            ============================================ */
         .games-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
+            gap: 2rem;
         }
 
         /* ============================================
-           GAME CARD - ASPECT RATIO 3:4
+           GAME CARD - DEPTH & SMOOTH HOVER
            ============================================ */
         .game-card {
             background: var(--surface);
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
             transition: var(--transition);
             border: 1px solid var(--border);
             cursor: pointer;
+            box-shadow: var(--shadow-sm);
         }
         .game-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.5);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
             border-color: var(--accent);
         }
 
-        /* Cover Image - 3:4 Aspect Ratio */
         .game-cover {
             position: relative;
             aspect-ratio: 3 / 4;
@@ -475,13 +469,12 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
         .game-card:hover .game-cover img {
             transform: scale(1.08);
         }
 
-        /* Gradient Overlay for Text */
         .cover-overlay {
             position: absolute;
             bottom: 0;
@@ -495,7 +488,6 @@
             pointer-events: none;
         }
 
-        /* Progress Bar */
         .progress-overlay {
             position: absolute;
             bottom: 0;
@@ -510,7 +502,6 @@
             transition: width 0.5s ease;
         }
 
-        /* Card Content */
         .card-content {
             padding: 1rem;
         }
@@ -521,7 +512,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--text-primary);
         }
         .game-title small {
             font-size: 0.65rem;
@@ -529,7 +519,6 @@
             color: var(--text-muted);
         }
 
-        /* Status Badge */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -560,15 +549,8 @@
             gap: 3px;
             margin: 8px 0;
         }
-        .rating-stars i { 
-            font-size: 0.7rem; 
-            color: #fbbf24;
-        }
-        .rating-stars span { 
-            font-size: 0.65rem; 
-            color: var(--text-muted); 
-            margin-left: 6px;
-        }
+        .rating-stars i { font-size: 0.7rem; color: #fbbf24; }
+        .rating-stars span { font-size: 0.65rem; color: var(--text-muted); margin-left: 6px; }
 
         .game-meta {
             display: flex;
@@ -584,7 +566,6 @@
             color: var(--accent);
         }
 
-        /* Card Actions - Touch Friendly */
         .card-actions {
             display: flex;
             justify-content: flex-end;
@@ -611,179 +592,7 @@
         }
 
         /* ============================================
-           SKELETON LOADING
-           ============================================ */
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--surface) 50%, var(--bg-tertiary) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        .skeleton-cover {
-            aspect-ratio: 3 / 4;
-            width: 100%;
-            border-radius: 16px 16px 0 0;
-        }
-        .skeleton-title {
-            height: 14px;
-            width: 70%;
-            border-radius: 8px;
-            margin: 8px 0;
-        }
-        .skeleton-text {
-            height: 10px;
-            width: 90%;
-            border-radius: 6px;
-            margin: 6px 0;
-        }
-
-        /* ============================================
-           EMPTY STATE PREMIUM
-           ============================================ */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: var(--surface);
-            border-radius: 24px;
-            border: 1px solid var(--border);
-        }
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-            color: var(--accent);
-        }
-        .empty-state h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-        .empty-state p {
-            color: var(--text-muted);
-        }
-
-        /* ============================================
-           SEARCH RESULTS GLASSMORPHISM
-           ============================================ */
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 320px;
-            overflow-y: auto;
-            margin-top: 8px;
-            border-radius: 20px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            z-index: 1000;
-            display: none;
-        }
-        .search-result-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--glass-border);
-            transition: var(--transition);
-        }
-        .search-result-item:hover {
-            background: var(--accent-gradient);
-            color: white;
-        }
-        .search-result-item img {
-            width: 48px;
-            height: 48px;
-            object-fit: cover;
-            border-radius: 12px;
-        }
-
-        /* ============================================
-           MODALS - GLASSMORPHISM + BOTTOM SHEET MOBILE
-           ============================================ */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .modal-content {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 32px;
-            max-width: 550px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            border: 1px solid var(--glass-border);
-            animation: modalFadeIn 0.3s ease;
-        }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        /* Form Styles */
-        .form-group { margin-bottom: 1rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        label { 
-            font-weight: 500; 
-            display: block; 
-            margin-bottom: 6px; 
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        input, select {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            min-height: 48px;
-            transition: var(--transition);
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-glow);
-        }
-
-        .cover-preview {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            border-radius: 20px;
-            margin-bottom: 1rem;
-            border: 2px solid var(--accent);
-        }
-
-        /* Section Toggle */
-        .section { display: none; }
-        .section.active { display: block; }
-
-        /* Loading Spinner */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ============================================
-           BOTTOM NAVIGATION (MOBILE ONLY)
+           BOTTOM NAVIGATION - MOBILE (THUMB ZONE)
            ============================================ */
         .bottom-nav {
             display: none;
@@ -828,7 +637,116 @@
             box-shadow: 0 8px 20px var(--accent-glow);
         }
 
-        /* Detail Modal */
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--surface) 50%, var(--bg-tertiary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-cover { aspect-ratio: 3 / 4; width: 100%; border-radius: 20px 20px 0 0; }
+        .skeleton-title { height: 14px; width: 70%; border-radius: 8px; margin: 8px 0; }
+        .skeleton-text { height: 10px; width: 90%; border-radius: 6px; margin: 6px 0; }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            grid-column: 1/-1;
+        }
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        /* Search Results */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 320px;
+            overflow-y: auto;
+            margin-top: 8px;
+            border-radius: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            z-index: 1000;
+            display: none;
+        }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+        .search-result-item:hover {
+            background: var(--accent-gradient);
+            color: white;
+        }
+        .search-result-item img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+        }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        label { font-weight: 500; display: block; margin-bottom: 6px; font-size: 0.8rem; }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            min-height: 48px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .cover-preview {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            border: 2px solid var(--accent);
+        }
+
         .detail-hero {
             height: 240px;
             background-size: cover;
@@ -845,22 +763,36 @@
             background: linear-gradient(to top, var(--surface), transparent);
         }
 
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
         /* ============================================
            RESPONSIVE DESIGN
            ============================================ */
         
-        /* Tablet & Desktop Large */
+        /* Desktop Large */
         @media (max-width: 1200px) {
             .games-grid {
                 grid-template-columns: repeat(3, 1fr);
-                gap: 1.2rem;
+                gap: 1.8rem;
             }
         }
 
+        /* Tablet */
         @media (max-width: 900px) {
             .games-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
+                gap: 1.5rem;
             }
         }
 
@@ -871,14 +803,21 @@
             }
             .main-content {
                 margin-left: 0;
-                padding: 1rem;
-                padding-bottom: 80px;
             }
             .bottom-nav {
                 display: flex;
             }
+            .sticky-header .content-header {
+                padding: 1rem;
+            }
+            .content-header h1 {
+                font-size: 1.4rem;
+            }
+            .container {
+                padding: 1rem;
+                padding-bottom: 80px;
+            }
             .stats-grid {
-                grid-template-columns: 1fr 1fr;
                 gap: 0.75rem;
             }
             .stat-card {
@@ -895,14 +834,10 @@
                 border-radius: 24px;
                 padding: 1rem;
             }
-            .search-box {
-                width: 100%;
-            }
-            select {
+            .search-box, select {
                 width: 100%;
             }
             .games-grid {
-                grid-template-columns: repeat(2, 1fr);
                 gap: 0.8rem;
             }
             .game-title {
@@ -950,17 +885,11 @@
                 min-width: 45px;
             }
         }
-
-        /* White Space - Breathable Layout */
-        .container, .section {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <!-- Desktop Sidebar - Glassmorphism Premium -->
+    <!-- Desktop Sidebar -->
     <aside class="sidebar">
         <div class="logo-area">
             <div class="logo-icon"><i class="fas fa-dice-d6"></i></div>
@@ -1004,87 +933,90 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="content-header">
-            <h1 id="pageTitle">Dashboard</h1>
-            <button id="addGameBtn" class="btn-primary">
-                <i class="fas fa-plus"></i> Add Game
-            </button>
-        </header>
+        <!-- Sticky Header with Blur Effect -->
+        <div class="sticky-header">
+            <div class="content-header">
+                <h1 id="pageTitle">Dashboard</h1>
+                <button id="addGameBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Add Game
+                </button>
+            </div>
+        </div>
 
-        <!-- Dashboard Section -->
-        <section id="dashboardSection" class="section active">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <i class="fas fa-gamepad"></i>
-                    <div>
-                        <h3>Total Games</h3>
-                        <p id="totalGames">0</p>
+        <div class="container">
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-gamepad"></i>
+                        <div>
+                            <h3>Total Games</h3>
+                            <p id="totalGames">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-trophy"></i>
+                        <div>
+                            <h3>Completed</h3>
+                            <p id="completedGames">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h3>Total Hours</h3>
+                            <p id="totalHours">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-star"></i>
+                        <div>
+                            <h3>Avg Rating</h3>
+                            <p id="avgRating">0.0</p>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-trophy"></i>
-                    <div>
-                        <h3>Completed</h3>
-                        <p id="completedGames">0</p>
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <canvas id="genreChart"></canvas>
+                        <h4>Top Genres</h4>
+                    </div>
+                    <div class="chart-card">
+                        <canvas id="completionChart"></canvas>
+                        <h4>Completion Status</h4>
+                    </div>
+                    <div class="chart-card">
+                        <canvas id="ratingChart"></canvas>
+                        <h4>Rating Distribution</h4>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                        <h3>Total Hours</h3>
-                        <p id="totalHours">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-star"></i>
-                    <div>
-                        <h3>Avg Rating</h3>
-                        <p id="avgRating">0.0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="charts-row">
-                <div class="chart-card">
-                    <canvas id="genreChart"></canvas>
-                    <h4>Top Genres</h4>
-                </div>
-                <div class="chart-card">
-                    <canvas id="completionChart"></canvas>
-                    <h4>Completion Status</h4>
-                </div>
-                <div class="chart-card">
-                    <canvas id="ratingChart"></canvas>
-                    <h4>Rating Distribution</h4>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Library Section -->
-        <section id="librarySection" class="section">
-            <div class="filter-bar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search games...">
+            <!-- Library Section -->
+            <section id="librarySection" class="section">
+                <div class="filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search games...">
+                    </div>
+                    <select id="filterGenre"><option value="">All Genres</option></select>
+                    <select id="filterPlatform"><option value="">All Platforms</option></select>
+                    <select id="filterRating">
+                        <option value="">All Ratings</option>
+                        <option value="5">5★ Only</option>
+                        <option value="4">4★ & Up</option>
+                        <option value="3">3★ & Up</option>
+                    </select>
+                    <select id="filterStatus">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="playing">Playing</option>
+                        <option value="backlog">Backlog</option>
+                    </select>
                 </div>
-                <select id="filterGenre"><option value="">All Genres</option></select>
-                <select id="filterPlatform"><option value="">All Platforms</option></select>
-                <select id="filterRating">
-                    <option value="">All Ratings</option>
-                    <option value="5">5★ Only</option>
-                    <option value="4">4★ & Up</option>
-                    <option value="3">3★ & Up</option>
-                </select>
-                <select id="filterStatus">
-                    <option value="">All Status</option>
-                    <option value="completed">Completed</option>
-                    <option value="playing">Playing</option>
-                    <option value="backlog">Backlog</option>
-                </select>
-            </div>
-            <div id="gamesGrid" class="games-grid">
-                <!-- Game cards will be inserted here -->
-            </div>
-        </section>
+                <div id="gamesGrid" class="games-grid"></div>
+            </section>
+        </div>
     </main>
 </div>
 
@@ -1111,42 +1043,17 @@
                     <img id="coverPreview" class="cover-preview" src="">
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Platform</label>
-                        <input type="text" id="platform">
-                    </div>
-                    <div class="form-group">
-                        <label>Genre</label>
-                        <input type="text" id="genre">
-                    </div>
+                    <div class="form-group"><label>Platform</label><input type="text" id="platform"></div>
+                    <div class="form-group"><label>Genre</label><input type="text" id="genre"></div>
                 </div>
-                <div class="form-group">
-                    <label>Tags (comma separated)</label>
-                    <input type="text" id="tags">
+                <div class="form-group"><label>Tags (comma)</label><input type="text" id="tags"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Progress (%)</label><input type="number" id="progress" min="0" max="100" value="0"></div>
+                    <div class="form-group"><label>Rating (1-5)</label><input type="number" id="rating" step="0.5" min="1" max="5" value="3"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label>Progress (%)</label>
-                        <input type="number" id="progress" min="0" max="100" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Rating (1-5)</label>
-                        <input type="number" id="rating" step="0.5" min="1" max="5" value="3">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Hours Played</label>
-                        <input type="number" id="hours_played" step="0.5" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="status">
-                            <option value="backlog">📚 Backlog</option>
-                            <option value="playing">🎮 Playing</option>
-                            <option value="completed">🏆 Completed</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label>Hours</label><input type="number" id="hours_played" step="0.5" value="0"></div>
+                    <div class="form-group"><label>Status</label><select id="status"><option value="backlog">📚 Backlog</option><option value="playing">🎮 Playing</option><option value="completed">🏆 Completed</option></select></div>
                 </div>
                 <button type="submit" class="btn-primary" style="width:100%">💾 Save Game</button>
             </form>
@@ -1154,12 +1061,12 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete Modal -->
 <div id="deleteModal" class="modal">
     <div class="modal-content" style="max-width:400px">
         <div style="text-align:center">
             <div style="width:60px; height:60px; margin:0 auto 1rem; background:rgba(239,68,68,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center">
-                <i class="fas fa-trash-alt text-red-500 text-2xl"></i>
+                <i class="fas fa-trash-alt" style="color:#ef4444; font-size:1.5rem"></i>
             </div>
             <h3 style="font-size:1.3rem; margin-bottom:0.5rem">Delete Game?</h3>
             <p style="color:var(--text-muted); margin-bottom:1.5rem">This action cannot be undone.</p>
@@ -1171,7 +1078,7 @@
     </div>
 </div>
 
-<!-- Game Detail Modal -->
+<!-- Detail Modal -->
 <div id="detailModal" class="modal">
     <div class="modal-content" style="max-width:700px; padding:0; overflow:hidden">
         <div style="position:relative">
@@ -1183,7 +1090,6 @@
 </div>
 
 <script>
-    // Environment Variables
     window.SUPABASE_URL = 'https://inwjlxiqxtztjtrttqke.supabase.co';
     window.SUPABASE_KEY = 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
     window.RAWG_API_KEY = 'acb03a4a2dd04337b6b62eb78e325c59';
