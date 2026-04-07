@@ -7,8 +7,6 @@
     
     <!-- SEO & OpenGraph -->
     <meta name="description" content="Track your gaming journey with GameVault - The premium game collection manager">
-    <meta name="keywords" content="game tracker, gaming library, game collection, steam alternative">
-    <meta name="author" content="GameVault">
     <meta name="theme-color" content="#0078f0">
     
     <!-- OpenGraph for Social Media -->
@@ -16,27 +14,17 @@
     <meta property="og:description" content="Track your gaming journey with style">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://placehold.co/1200x630/0078f0/white?text=GameVault">
-    <meta property="og:url" content="https://gamevault.app">
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="GameVault - Premium Game Tracker">
-    <meta name="twitter:description" content="Track your gaming journey with style">
-    <meta name="twitter:image" content="https://placehold.co/1200x600/0078f0/white?text=GameVault">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22GameVault%22,%22short_name%22:%22GameVault%22,%22description%22:%22Track%20your%20gaming%20journey%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22theme_color%22:%22#0078f0%22,%22background_color%22:%22#050505%22,%22icons%22:[{%22src%22:%22https://placehold.co/192x192/0078f0/white?text=G%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.0/dist/vanilla-tilt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         * {
@@ -45,106 +33,54 @@
             box-sizing: border-box;
         }
 
-        /* CSS Variables - Premium Dark Theme */
         :root {
-            --bg-primary: #050505;
-            --bg-secondary: #0a0a0a;
-            --bg-elevated: #111111;
-            --card-bg: rgba(18, 18, 18, 0.7);
-            --card-bg-solid: #141414;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-tertiary: #6b6b6b;
-            --border: rgba(255, 255, 255, 0.08);
-            --border-glow: rgba(0, 120, 240, 0.3);
-            --accent: #0078f0;
-            --accent-hover: #0060c0;
-            --accent-glow: rgba(0, 120, 240, 0.4);
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --gradient-1: linear-gradient(135deg, #0078f0, #00c6ff);
-            --gradient-2: linear-gradient(135deg, #667eea, #764ba2);
-            --glass-bg: rgba(20, 20, 30, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 30px rgba(0, 120, 240, 0.2);
+            --sidebar-bg: #1e1b2e;
+            --shadow: 0 20px 35px -10px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
-        /* Smooth Scroll */
-        html {
-            scroll-behavior: smooth;
+        .dark-mode {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --sidebar-bg: #0f0f1a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
-            overflow-x: hidden;
-            cursor: none;
+            transition: all 0.3s ease;
         }
 
-        /* Custom Cursor */
-        .cursor-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: transform 0.15s ease, width 0.2s, height 0.2s;
-            transform: translate(-50%, -50%);
-        }
-
-        .cursor-ring {
-            width: 32px;
-            height: 32px;
-            border: 2px solid var(--accent);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9998;
-            transition: transform 0.2s ease, width 0.2s, height 0.2s, border-color 0.2s;
-            transform: translate(-50%, -50%);
-        }
-
-        .cursor-ring.hover {
-            width: 48px;
-            height: 48px;
-            border-color: var(--accent-glow);
-            background: rgba(0, 120, 240, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            body {
-                cursor: auto;
-            }
-            .cursor-dot, .cursor-ring {
-                display: none;
-            }
-        }
-
-        /* Glassmorphism Base */
-        .glass, .sidebar, .filter-bar, .modal-content, .stat-card, .chart-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-        }
-
-        /* Layout */
+        /* Layout Utama */
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* Sidebar - Glassmorphism */
+        /* Sidebar Desktop */
         .sidebar {
-            width: 280px;
-            padding: 2rem 1.5rem;
+            width: 260px;
+            background: var(--sidebar-bg);
+            padding: 2rem 1rem;
             display: flex;
             flex-direction: column;
             gap: 2rem;
@@ -152,10 +88,8 @@
             top: 0;
             left: 0;
             bottom: 0;
-            z-index: 100;
-            margin: 1rem;
-            height: calc(100% - 2rem);
-            border-radius: 28px;
+            z-index: 10;
+            border-right: 1px solid rgba(255,255,255,0.1);
         }
 
         .logo-area {
@@ -163,13 +97,13 @@
             align-items: center;
             gap: 12px;
             font-size: 1.5rem;
-            font-weight: 800;
-            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            color: white;
         }
 
         .logo-area i {
             font-size: 2rem;
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -186,40 +120,22 @@
             align-items: center;
             gap: 12px;
             padding: 12px 20px;
-            border-radius: 16px;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
+            border-radius: 14px;
+            color: #cbd5e1;
+            transition: all 0.3s;
             text-decoration: none;
             cursor: pointer;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 0;
-            height: 100%;
-            background: rgba(0, 120, 240, 0.15);
-            transition: width 0.3s ease;
-            z-index: -1;
-        }
-
-        .nav-link:hover::before, .nav-link.active::before {
-            width: 100%;
         }
 
         .nav-link:hover, .nav-link.active {
+            background: rgba(139, 92, 246, 0.2);
             color: white;
         }
 
         /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 300px;
+            margin-left: 260px;
             padding: 2rem;
             min-height: 100vh;
         }
@@ -231,14 +147,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--glass-border);
-            padding: 12px 20px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 10px 20px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
             z-index: 100;
             justify-content: space-around;
-            border-radius: 32px 32px 0 0;
         }
 
         .nav-item {
@@ -253,24 +167,16 @@
             padding: 8px 16px;
             border-radius: 40px;
             font-size: 0.7rem;
-            transition: all 0.2s ease;
-            min-width: 64px;
-            min-height: 44px;
-        }
-
-        .nav-item:active {
-            transform: scale(0.95);
         }
 
         .nav-item i { font-size: 1.4rem; }
-        .nav-item.active { color: var(--accent); background: rgba(0, 120, 240, 0.15); }
+        .nav-item.active { color: var(--accent); background: rgba(139, 92, 246, 0.15); }
         .nav-item.fab {
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
             color: white;
             padding: 12px 20px;
             border-radius: 50px;
             margin-top: -20px;
-            box-shadow: var(--shadow-glow);
         }
 
         /* Header */
@@ -284,19 +190,17 @@
         }
 
         .content-header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            font-family: 'Syne', sans-serif;
-            background: var(--gradient-1);
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: -0.02em;
         }
 
-        /* Magnetic Button */
+        /* Buttons */
         .btn-primary {
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
             border: none;
             padding: 12px 28px;
             border-radius: 40px;
@@ -306,27 +210,12 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s;
         }
 
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn-primary:hover::before {
-            width: 300px;
-            height: 300px;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
         }
 
         /* Stats Grid */
@@ -338,23 +227,19 @@
         }
 
         .stat-card {
+            background: var(--card-bg);
             padding: 1.5rem;
+            border-radius: 28px;
             display: flex;
             align-items: center;
             gap: 1rem;
-            transition: all 0.3s ease;
-            animation: fadeInUp 0.6s ease backwards;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-            box-shadow: var(--shadow-glow);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
 
         .stat-card i {
             font-size: 2rem;
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--accent), #ec4899);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -369,17 +254,22 @@
         }
 
         .chart-card {
+            background: var(--card-bg);
+            border-radius: 28px;
             padding: 1.5rem;
-            transition: all 0.3s ease;
+            border: 1px solid var(--border);
         }
 
-        /* Filter Bar */
+        /* Filter Bar - Grid Horizontal */
         .filter-bar {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 2rem;
+            background: var(--card-bg);
             padding: 1rem;
+            border-radius: 60px;
+            border: 1px solid var(--border);
         }
 
         .search-box {
@@ -387,7 +277,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: var(--bg-elevated);
+            background: var(--bg-primary);
             padding: 8px 16px;
             border-radius: 40px;
             border: 1px solid var(--border);
@@ -399,47 +289,42 @@
             border: none;
             outline: none;
             color: var(--text-primary);
-            font-size: 0.9rem;
         }
 
         select {
-            background: var(--bg-elevated);
+            background: var(--bg-primary);
             border: 1px solid var(--border);
             padding: 8px 20px;
             border-radius: 40px;
             color: var(--text-primary);
             cursor: pointer;
-            font-size: 0.85rem;
         }
 
         /* Games Grid */
         .games-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
-        /* Game Card with Parallax */
+        /* Game Card */
         .game-card {
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
             border-radius: 24px;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            border: 1px solid var(--glass-border);
-            transform-style: preserve-3d;
+            transition: all 0.3s;
+            border: 1px solid var(--border);
             cursor: pointer;
         }
 
         .game-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: var(--accent);
-            box-shadow: var(--shadow-glow);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.2);
         }
 
         .game-cover {
             position: relative;
-            height: 200px;
+            height: 180px;
             overflow: hidden;
         }
 
@@ -447,32 +332,9 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.6s ease;
         }
 
-        .game-card:hover .game-cover img {
-            transform: scale(1.08);
-        }
-
-        /* Shimmer Loading Effect */
-        .shimmer {
-            background: linear-gradient(90deg, var(--card-bg) 25%, var(--bg-elevated) 50%, var(--card-bg) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .skeleton-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            height: 320px;
-        }
-
-        .free-badge {
+        .status-badge {
             position: absolute;
             top: 12px;
             left: 12px;
@@ -482,9 +344,12 @@
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 600;
-            color: #00d4ff;
             z-index: 2;
         }
+
+        .status-badge.completed { background: #10b981; color: white; }
+        .status-badge.playing { background: #f59e0b; color: white; }
+        .status-badge.backlog { background: #8b5cf6; color: white; }
 
         .progress-overlay {
             position: absolute;
@@ -492,12 +357,12 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
         }
 
         .progress-fill {
             height: 100%;
-            background: var(--gradient-1);
+            background: linear-gradient(90deg, var(--accent), #a855f7);
             transition: width 0.3s;
         }
 
@@ -506,18 +371,16 @@
         }
 
         .game-title {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            font-family: 'Syne', sans-serif;
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin-bottom: 0.5rem;
         }
 
         .rating-stars i {
             color: #fbbf24;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
         }
 
         .game-meta {
@@ -528,11 +391,10 @@
         }
 
         .tag {
-            background: var(--bg-elevated);
+            background: var(--bg-primary);
             padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.65rem;
-            color: var(--text-secondary);
+            font-size: 0.7rem;
         }
 
         .card-actions {
@@ -551,65 +413,14 @@
             color: var(--text-secondary);
             padding: 6px 12px;
             border-radius: 8px;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            min-height: 36px;
-            min-width: 64px;
         }
 
-        .card-actions button:active {
-            transform: scale(0.95);
+        .card-actions button:hover {
+            color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
         }
 
-        /* Bottom Sheet Modal */
-        .bottom-sheet {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-secondary);
-            border-radius: 28px 28px 0 0;
-            z-index: 1000;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .bottom-sheet.active {
-            transform: translateY(0);
-        }
-
-        .bottom-sheet .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bottom-sheet .modal-body {
-            padding: 1.5rem;
-        }
-
-        .sheet-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 999;
-        }
-
-        .sheet-overlay.active {
-            display: block;
-        }
-
-        /* Standard Modal (Desktop) */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -617,7 +428,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
@@ -625,30 +436,262 @@
         }
 
         .modal-content {
-            max-width: 550px;
+            background: var(--bg-secondary);
+            border-radius: 32px;
+            max-width: 650px;
             width: 90%;
             padding: 2rem;
             max-height: 85vh;
             overflow-y: auto;
         }
 
-        /* Reveal on Scroll Animation */
-        .reveal {
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Detail Modal - Premium Style */
+        .detail-game-cover {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .detail-stat {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .detail-stat i {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detail-stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .detail-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: var(--accent);
+            border: none;
+            color: white;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            color: white;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 26px;
+        }
+
+        .switch input {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            width: 0;
+            height: 0;
         }
 
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            border-radius: 34px;
+            transition: 0.3s;
         }
 
-        /* Footer */
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Search Results */
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-result-item:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .search-result-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* Section Toggle */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            background: var(--card-bg);
+            border-radius: 28px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: white;
+            z-index: 10000;
+            display: none;
+        }
+
+        .notification.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .notification.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        /* Cover Preview */
+        .cover-preview {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer Premium */
         .footer {
             margin-top: 4rem;
             padding: 3rem 2rem 2rem;
-            background: var(--bg-elevated);
+            background: var(--card-bg);
             border-radius: 28px;
             border: 1px solid var(--border);
         }
@@ -661,7 +704,6 @@
         }
 
         .footer-section h4 {
-            font-family: 'Syne', sans-serif;
             margin-bottom: 1rem;
             color: var(--text-primary);
         }
@@ -686,7 +728,7 @@
         .social-links a {
             width: 40px;
             height: 40px;
-            background: var(--card-bg);
+            background: var(--bg-primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -703,234 +745,34 @@
             text-align: center;
             padding-top: 2rem;
             border-top: 1px solid var(--border);
-            color: var(--text-tertiary);
-            font-size: 0.85rem;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        label {
-            font-weight: 500;
-            display: block;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
             color: var(--text-secondary);
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: var(--bg-elevated);
-            color: var(--text-primary);
-            font-family: inherit;
-        }
-
-        /* Dark Mode Toggle */
-        .dark-mode-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto;
-            padding: 1rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 30px;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 52px;
-            height: 26px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #444;
-            border-radius: 34px;
-            transition: 0.3s;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-
-        input:checked + .slider {
-            background: var(--accent);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        /* Search Results */
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            z-index: 1000;
-            display: none;
-        }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 12px 24px;
-            border-radius: 12px;
-            color: white;
-            z-index: 10000;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Section Toggle */
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem;
-            background: var(--card-bg);
-            border-radius: 28px;
+            font-size: 0.85rem;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 1rem;
-                padding-bottom: 80px;
-            }
-
-            .bottom-nav {
-                display: flex;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-            }
-
-            .games-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 1rem;
-            }
-
-            .game-cover {
-                height: 140px;
-            }
-
-            .game-title {
-                font-size: 0.85rem;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .filter-bar {
-                flex-direction: column;
-                border-radius: 20px;
-            }
-
-            .content-header h1 {
-                font-size: 1.8rem;
-            }
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 1rem; padding-bottom: 80px; }
+            .bottom-nav { display: flex; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+            .games-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+            .game-cover { height: 140px; }
+            .game-title { font-size: 0.85rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; border-radius: 20px; }
+            .search-box { width: 100%; }
+            select { width: 100%; }
         }
 
         @media (min-width: 769px) {
-            .mobile-only {
-                display: none;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 10px;
+            .mobile-only { display: none; }
         }
     </style>
 </head>
 <body>
-
-<!-- Custom Cursor -->
-<div class="cursor-dot"></div>
-<div class="cursor-ring"></div>
-
 <div class="app-container">
     <!-- Desktop Sidebar -->
-    <aside class="sidebar glass">
+    <aside class="sidebar">
         <div class="logo-area">
             <i class="fas fa-dice-d6"></i>
             <span>GameVault</span>
@@ -973,9 +815,9 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <header class="content-header reveal">
+        <header class="content-header">
             <h1 id="pageTitle">Dashboard</h1>
-            <button id="addGameBtn" class="btn-primary magnetic">
+            <button id="addGameBtn" class="btn-primary">
                 <i class="fas fa-plus"></i> Add Game
             </button>
         </header>
@@ -983,28 +825,28 @@
         <!-- Dashboard Section -->
         <section id="dashboardSection" class="section active">
             <div class="stats-grid">
-                <div class="stat-card reveal">
+                <div class="stat-card">
                     <i class="fas fa-gamepad"></i>
                     <div>
                         <h3>Total Games</h3>
                         <p id="totalGames">0</p>
                     </div>
                 </div>
-                <div class="stat-card reveal">
+                <div class="stat-card">
                     <i class="fas fa-trophy"></i>
                     <div>
                         <h3>Completed</h3>
                         <p id="completedGames">0</p>
                     </div>
                 </div>
-                <div class="stat-card reveal">
+                <div class="stat-card">
                     <i class="fas fa-clock"></i>
                     <div>
                         <h3>Total Hours</h3>
                         <p id="totalHours">0</p>
                     </div>
                 </div>
-                <div class="stat-card reveal">
+                <div class="stat-card">
                     <i class="fas fa-star"></i>
                     <div>
                         <h3>Avg Rating</h3>
@@ -1013,15 +855,15 @@
                 </div>
             </div>
             <div class="charts-row">
-                <div class="chart-card glass reveal">
+                <div class="chart-card">
                     <canvas id="genreChart"></canvas>
                     <h4 style="text-align: center; margin-top: 1rem;">Top Genres</h4>
                 </div>
-                <div class="chart-card glass reveal">
+                <div class="chart-card">
                     <canvas id="completionChart"></canvas>
                     <h4 style="text-align: center; margin-top: 1rem;">Completion Status</h4>
                 </div>
-                <div class="chart-card glass reveal">
+                <div class="chart-card">
                     <canvas id="ratingChart"></canvas>
                     <h4 style="text-align: center; margin-top: 1rem;">Rating Distribution</h4>
                 </div>
@@ -1030,7 +872,7 @@
 
         <!-- Library Section -->
         <section id="librarySection" class="section">
-            <div class="filter-bar glass reveal">
+            <div class="filter-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Search your library...">
@@ -1055,67 +897,65 @@
                 </select>
             </div>
             <div id="gamesGrid" class="games-grid">
-                <!-- Skeleton Loading -->
-                <div class="skeleton-card shimmer"></div>
-                <div class="skeleton-card shimmer"></div>
-                <div class="skeleton-card shimmer"></div>
-                <div class="skeleton-card shimmer"></div>
+                <div class="empty-state">
+                    <i class="fas fa-gamepad" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>Loading games...</p>
+                </div>
             </div>
         </section>
 
         <!-- Footer -->
-        <footer class="footer reveal">
+        <footer class="footer">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>GameVault</h4>
-                    <p style="color: var(--text-secondary);">Track your gaming journey with style.</p>
+                    <h4>🎮 GameVault</h4>
+                    <p style="color: var(--text-secondary);">Track your gaming journey with style. Manage your backlog, track progress, and never forget a game again.</p>
                 </div>
                 <div class="footer-section">
                     <h4>Quick Links</h4>
-                    <a href="#" data-tab="dashboard">Dashboard</a>
-                    <a href="#" data-tab="library">My Library</a>
-                    <a href="#">About</a>
-                    <a href="#">Contact</a>
+                    <a href="#" data-tab="dashboard">📊 Dashboard</a>
+                    <a href="#" data-tab="library">🎮 My Library</a>
+                    <a href="#">ℹ️ About</a>
+                    <a href="#">📧 Contact</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Follow Us</h4>
+                    <h4>Resources</h4>
+                    <a href="#">📖 Blog</a>
+                    <a href="#">❓ FAQ</a>
+                    <a href="#">📜 Changelog</a>
+                    <a href="#">🔧 API Docs</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect With Us</h4>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-discord"></i></a>
                         <a href="#"><i class="fab fa-github"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2024 GameVault. All rights reserved. Built with <i class="fas fa-heart" style="color: var(--accent);"></i> for gamers.</p>
+                <p>&copy; 2024 GameVault. All rights reserved. Built with <i class="fas fa-heart" style="color: var(--accent);"></i> for gamers worldwide.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.75rem;">Version 2.0.0 | Made with 🎮</p>
             </div>
         </footer>
     </main>
 </div>
 
-<!-- Bottom Sheet Modal (Mobile) -->
-<div class="sheet-overlay" id="sheetOverlay"></div>
-<div class="bottom-sheet" id="bottomSheet">
-    <div class="modal-header">
-        <h3 id="sheetTitle">Game Options</h3>
-        <span class="close-sheet" style="font-size: 2rem; cursor: pointer;">&times;</span>
-    </div>
-    <div class="modal-body" id="sheetContent"></div>
-</div>
-
-<!-- Standard Modal (Desktop) -->
+<!-- Add/Edit Modal -->
 <div id="gameModal" class="modal">
-    <div class="modal-content glass">
+    <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalTitle">Add New Game</h3>
             <span class="close-modal">&times;</span>
         </div>
         <div style="position: relative; margin-bottom: 1rem;">
-            <input type="text" id="gameSearchInput" placeholder="🔍 Search game from RAWG...">
+            <input type="text" id="gameSearchInput" placeholder="🔍 Search game from RAWG..." style="width: 100%; padding: 12px; border-radius: 50px; border: 1px solid var(--border); background: var(--bg-primary);">
             <div id="searchResults" class="search-results"></div>
         </div>
-        <div style="text-align: center; margin: 10px 0; color: var(--text-secondary);">— OR —</div>
+        <div style="text-align: center; margin: 10px 0;">— OR —</div>
         <form id="gameForm">
             <input type="hidden" id="gameId">
             <div class="form-group">
@@ -1123,7 +963,7 @@
                 <input type="text" id="title" required>
             </div>
             <div id="coverPreviewContainer" style="display: none;">
-                <img id="coverPreview" class="cover-preview" src="" style="width:100%; border-radius:16px;">
+                <img id="coverPreview" class="cover-preview" src="">
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -1163,14 +1003,29 @@
                     </select>
                 </div>
             </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date Added</label>
+                    <input type="date" id="date_added">
+                </div>
+                <div class="form-group">
+                    <label>Last Played</label>
+                    <input type="date" id="last_played">
+                </div>
+            </div>
             <button type="submit" class="btn-primary" style="width: 100%;">💾 Save Game</button>
         </form>
     </div>
 </div>
 
+<!-- Detail Game Modal -->
+<div id="detailModal" class="modal">
+    <div class="modal-content" id="detailContent"></div>
+</div>
+
 <!-- Delete Modal -->
 <div id="deleteModal" class="modal">
-    <div class="modal-content glass" style="max-width: 400px;">
+    <div class="modal-content" style="max-width: 400px;">
         <h3>🗑️ Confirm Delete</h3>
         <p>Are you sure you want to delete this game?</p>
         <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
@@ -1182,7 +1037,7 @@
 
 <script>
     // ============================================
-    // PREMIUM GAME TRACKER - ALL FEATURES
+    // GAME TRACKER - PREMIUM VERSION
     // ============================================
 
     // Configuration
@@ -1197,104 +1052,48 @@
     let currentCoverUrl = null;
     let deleteId = null;
 
-    // ============================================
-    // CUSTOM CURSOR
-    // ============================================
-    if (window.innerWidth > 768) {
-        const cursorDot = document.querySelector('.cursor-dot');
-        const cursorRing = document.querySelector('.cursor-ring');
-        
-        document.addEventListener('mousemove', (e) => {
-            cursorDot.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-            cursorRing.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-        });
-        
-        document.querySelectorAll('a, button, .game-card, .nav-link, .stat-card').forEach(el => {
-            el.addEventListener('mouseenter', () => cursorRing.classList.add('hover'));
-            el.addEventListener('mouseleave', () => cursorRing.classList.remove('hover'));
+    // Helper Functions
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;';
         });
     }
 
-    // ============================================
-    // MAGNETIC BUTTON EFFECT
-    // ============================================
-    document.querySelectorAll('.magnetic').forEach(btn => {
-        btn.addEventListener('mousemove', (e) => {
-            const rect = btn.getBoundingClientRect();
-            const x = e.clientX - rect.left - rect.width / 2;
-            const y = e.clientY - rect.top - rect.height / 2;
-            btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.transform = 'translate(0, 0)';
-        });
-    });
+    function formatDate(dateStr) {
+        if (!dateStr) return 'Not set';
+        return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
 
-    // ============================================
-    // REVEAL ON SCROLL (Intersection Observer)
-    // ============================================
-    const revealElements = document.querySelectorAll('.reveal');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
-        });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-    
-    revealElements.forEach(el => observer.observe(el));
-
-    // ============================================
-    // VANILLA TILT PARALLAX
-    // ============================================
-    function initTilt() {
-        if (window.innerWidth > 768) {
-            VanillaTilt.init(document.querySelectorAll('.game-card'), {
-                max: 8,
-                speed: 400,
-                glare: true,
-                'max-glare': 0.3,
-                scale: 1.02,
-                perspective: 1000,
-                easing: 'cubic-bezier(.03,.98,.52,.99)'
-            });
+    function getStatusIcon(status) {
+        switch(status) {
+            case 'completed': return '🏆';
+            case 'playing': return '🎮';
+            default: return '📚';
         }
     }
 
-    // ============================================
-    // BOTTOM SHEET (Mobile)
-    // ============================================
-    function openBottomSheet(title, content) {
-        document.getElementById('sheetTitle').innerText = title;
-        document.getElementById('sheetContent').innerHTML = content;
-        document.getElementById('bottomSheet').classList.add('active');
-        document.getElementById('sheetOverlay').classList.add('active');
-    }
-    
-    function closeBottomSheet() {
-        document.getElementById('bottomSheet').classList.remove('active');
-        document.getElementById('sheetOverlay').classList.remove('active');
-    }
-    
-    document.querySelector('.close-sheet')?.addEventListener('click', closeBottomSheet);
-    document.getElementById('sheetOverlay')?.addEventListener('click', closeBottomSheet);
-
-    // ============================================
-    // HELPER FUNCTIONS
-    // ============================================
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    function getStatusClass(status) {
+        switch(status) {
+            case 'completed': return 'completed';
+            case 'playing': return 'playing';
+            default: return 'backlog';
+        }
     }
 
     function renderStars(rating) {
         let stars = '';
         const fullStars = Math.floor(rating);
         const hasHalfStar = rating % 1 !== 0;
+        
         for (let i = 1; i <= 5; i++) {
-            if (i <= fullStars) stars += '<i class="fas fa-star"></i>';
-            else if (hasHalfStar && i === fullStars + 1) stars += '<i class="fas fa-star-half-alt"></i>';
-            else stars += '<i class="far fa-star"></i>';
+            if (i <= fullStars) {
+                stars += '<i class="fas fa-star"></i>';
+            } else if (hasHalfStar && i === fullStars + 1) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            } else {
+                stars += '<i class="far fa-star"></i>';
+            }
         }
         return stars;
     }
@@ -1309,12 +1108,12 @@
         notification.textContent = message;
         notification.className = `notification ${type}`;
         notification.style.display = 'block';
-        setTimeout(() => notification.style.display = 'none', 3000);
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
     }
 
-    // ============================================
-    // RAWG API
-    // ============================================
+    // RAWG API Functions
     async function searchGamesFromAPI(query) {
         if (!query || query.length < 2) return [];
         try {
@@ -1335,9 +1134,7 @@
         }
     }
 
-    // ============================================
-    // RENDER FUNCTIONS
-    // ============================================
+    // Render Functions
     function renderLibrary() {
         const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
         const genreFilter = document.getElementById('filterGenre')?.value || '';
@@ -1346,6 +1143,7 @@
         const statusFilter = document.getElementById('filterStatus')?.value || '';
 
         let filtered = gamesData.filter(g => g.title?.toLowerCase().includes(search));
+        
         if (genreFilter) filtered = filtered.filter(g => g.genre === genreFilter);
         if (platformFilter) filtered = filtered.filter(g => g.platform === platformFilter);
         if (ratingFilter) filtered = filtered.filter(g => g.rating >= parseInt(ratingFilter));
@@ -1362,9 +1160,12 @@
         grid.innerHTML = filtered.map(game => `
             <div class="game-card" data-id="${game.id}">
                 <div class="game-cover">
-                    <img src="${game.cover_url || 'https://placehold.co/400x200/141414/0078f0?text=' + encodeURIComponent(game.title.substring(0,1))}" 
-                         alt="${escapeHtml(game.title)}" loading="lazy">
-                    <div class="free-badge"><i class="fas fa-download"></i> ${game.status === 'completed' ? 'COMPLETED' : 'PLAY NOW'}</div>
+                    <img src="${game.cover_url || 'https://placehold.co/400x200/1e1b2e/8b5cf6?text=' + encodeURIComponent(game.title.substring(0,1))}" 
+                         alt="${escapeHtml(game.title)}" loading="lazy"
+                         onerror="this.src='https://placehold.co/400x200/1e1b2e/8b5cf6?text=${encodeURIComponent(game.title.substring(0,2))}'">
+                    <div class="status-badge ${getStatusClass(game.status)}">
+                        ${getStatusIcon(game.status)} ${game.status === 'completed' ? 'COMPLETED' : game.status === 'playing' ? 'PLAYING' : 'BACKLOG'}
+                    </div>
                     <div class="progress-overlay">
                         <div class="progress-fill" style="width:${game.progress || 0}%"></div>
                     </div>
@@ -1383,57 +1184,102 @@
                         ${game.tags ? game.tags.split(',').slice(0,2).map(t => `<span class="tag">#${escapeHtml(t.trim())}</span>`).join('') : ''}
                     </div>
                     <div class="card-actions">
+                        <button class="view-detail" data-id="${game.id}"><i class="fas fa-info-circle"></i> Details</button>
                         <button class="edit-game" data-id="${game.id}"><i class="fas fa-edit"></i> Edit</button>
-                        <button class="delete-game" data-id="${game.id}"><i class="fas fa-trash-alt"></i> Delete</button>
                     </div>
                 </div>
             </div>
         `).join('');
         
-        // Re-init tilt after render
-        if (window.innerWidth > 768) {
-            VanillaTilt.init(document.querySelectorAll('.game-card'), {
-                max: 8, speed: 400, glare: true, 'max-glare': 0.3, scale: 1.02, perspective: 1000
+        document.querySelectorAll('.view-detail').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showGameDetail(btn.dataset.id);
             });
-        }
+        });
         
         document.querySelectorAll('.edit-game').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (window.innerWidth <= 768) {
-                    const game = gamesData.find(g => g.id == btn.dataset.id);
-                    openBottomSheet('Edit Game', `
-                        <form id="editForm">
-                            <div class="form-group"><label>Title</label><input type="text" id="editTitle" value="${escapeHtml(game.title)}"></div>
-                            <div class="form-group"><label>Progress (%)</label><input type="number" id="editProgress" value="${game.progress}"></div>
-                            <div class="form-group"><label>Rating</label><input type="number" id="editRating" step="0.5" value="${game.rating}"></div>
-                            <button type="submit" class="btn-primary" style="width:100%">Save Changes</button>
-                        </form>
-                    `);
-                    document.getElementById('editForm')?.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        await supabaseClient.from('games').update({
-                            title: document.getElementById('editTitle').value,
-                            progress: parseInt(document.getElementById('editProgress').value),
-                            rating: parseFloat(document.getElementById('editRating').value)
-                        }).eq('id', game.id);
-                        closeBottomSheet();
-                        fetchGames();
-                        showNotification('Game updated!', 'success');
-                    });
-                } else {
-                    openEditModal(btn.dataset.id);
-                }
+                openEditModal(btn.dataset.id);
             });
         });
+    }
+
+    function showGameDetail(id) {
+        const game = gamesData.find(g => g.id == id);
+        if (!game) return;
         
-        document.querySelectorAll('.delete-game').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteId = btn.dataset.id;
-                document.getElementById('deleteModal').style.display = 'flex';
-            });
-        });
+        const detailHtml = `
+            <div class="modal-header">
+                <h3>🎮 Game Details</h3>
+                <span class="close-modal" onclick="document.getElementById('detailModal').style.display='none'">&times;</span>
+            </div>
+            <img class="detail-game-cover" src="${game.cover_url || 'https://placehold.co/600x300/1e1b2e/8b5cf6?text=' + encodeURIComponent(game.title.substring(0,1))}" 
+                 onerror="this.src='https://placehold.co/600x300/1e1b2e/8b5cf6?text=${encodeURIComponent(game.title.substring(0,2))}'">
+            <h2 style="margin-bottom: 0.5rem;">${escapeHtml(game.title)}</h2>
+            <div class="rating-stars" style="margin-bottom: 1rem;">${renderStars(game.rating || 0)}</div>
+            
+            <div class="detail-stats">
+                <div class="detail-stat">
+                    <i class="fas fa-tag"></i>
+                    <div class="detail-stat-label">Genre</div>
+                    <div class="detail-stat-value">${escapeHtml(game.genre) || 'Not specified'}</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-desktop"></i>
+                    <div class="detail-stat-label">Platform</div>
+                    <div class="detail-stat-value">${escapeHtml(game.platform) || 'Not specified'}</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="detail-stat-label">Progress</div>
+                    <div class="detail-stat-value">${game.progress || 0}%</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-clock"></i>
+                    <div class="detail-stat-label">Hours Played</div>
+                    <div class="detail-stat-value">${game.hours_played || 0}h</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-flag-checkered"></i>
+                    <div class="detail-stat-label">Status</div>
+                    <div class="detail-stat-value">${getStatusIcon(game.status)} ${game.status?.toUpperCase() || 'Backlog'}</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-hashtag"></i>
+                    <div class="detail-stat-label">Tags</div>
+                    <div class="detail-stat-value">${game.tags ? game.tags.split(',').slice(0,3).map(t => t.trim()).join(', ') : 'None'}</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-calendar-plus"></i>
+                    <div class="detail-stat-label">Date Added</div>
+                    <div class="detail-stat-value">${formatDate(game.date_added)}</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-calendar-alt"></i>
+                    <div class="detail-stat-label">Last Played</div>
+                    <div class="detail-stat-value">${formatDate(game.last_played)}</div>
+                </div>
+                <div class="detail-stat">
+                    <i class="fas fa-edit"></i>
+                    <div class="detail-stat-label">Last Updated</div>
+                    <div class="detail-stat-value">${formatDate(game.updated_at)}</div>
+                </div>
+            </div>
+            
+            <div class="detail-actions">
+                <button class="btn-edit" onclick="openEditModal('${game.id}'); document.getElementById('detailModal').style.display='none'">
+                    <i class="fas fa-edit"></i> Edit Game
+                </button>
+                <button class="btn-delete" onclick="deleteId='${game.id}'; document.getElementById('detailModal').style.display='none'; document.getElementById('deleteModal').style.display='flex'">
+                    <i class="fas fa-trash-alt"></i> Delete Game
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('detailContent').innerHTML = detailHtml;
+        document.getElementById('detailModal').style.display = 'flex';
     }
 
     function updateDashboard() {
@@ -1452,7 +1298,9 @@
 
     function updateCharts() {
         const genreCount = {};
-        gamesData.forEach(g => { if (g.genre) genreCount[g.genre] = (genreCount[g.genre] || 0) + 1; });
+        gamesData.forEach(g => {
+            if (g.genre) genreCount[g.genre] = (genreCount[g.genre] || 0) + 1;
+        });
         const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
         
         const genreCtx = document.getElementById('genreChart')?.getContext('2d');
@@ -1460,31 +1308,49 @@
             if (genreChart) genreChart.destroy();
             genreChart = new Chart(genreCtx, {
                 type: 'doughnut',
-                data: { labels: topGenres.map(g => g[0]), datasets: [{ data: topGenres.map(g => g[1]), backgroundColor: ['#0078f0', '#ec4899', '#06b6d4', '#f97316', '#10b981'] }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+                data: {
+                    labels: topGenres.map(g => g[0]),
+                    datasets: [{
+                        data: topGenres.map(g => g[1]),
+                        backgroundColor: ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#10b981']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } } } }
             });
         }
         
         const completionCtx = document.getElementById('completionChart')?.getContext('2d');
         if (completionCtx) {
-            const completionData = [gamesData.filter(g => g.status === 'completed').length, gamesData.filter(g => g.status === 'playing').length, gamesData.filter(g => g.status === 'backlog').length];
+            const completionData = [
+                gamesData.filter(g => g.status === 'completed').length,
+                gamesData.filter(g => g.status === 'playing').length,
+                gamesData.filter(g => g.status === 'backlog').length
+            ];
             if (completionChart) completionChart.destroy();
             completionChart = new Chart(completionCtx, {
                 type: 'bar',
-                data: { labels: ['Completed', 'Playing', 'Backlog'], datasets: [{ label: 'Games', data: completionData, backgroundColor: '#0078f0', borderRadius: 10 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } }
+                data: {
+                    labels: ['Completed', 'Playing', 'Backlog'],
+                    datasets: [{ label: 'Games', data: completionData, backgroundColor: '#8b5cf6', borderRadius: 10 }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } }, x: { ticks: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } } } }
             });
         }
         
         const ratingCtx = document.getElementById('ratingChart')?.getContext('2d');
         if (ratingCtx) {
-            const ratingDist = [0,0,0,0,0];
-            gamesData.forEach(g => { if (g.rating >= 1 && g.rating <= 5) ratingDist[Math.floor(g.rating) - 1]++; });
+            const ratingDist = [0, 0, 0, 0, 0];
+            gamesData.forEach(g => {
+                if (g.rating >= 1 && g.rating <= 5) ratingDist[Math.floor(g.rating) - 1]++;
+            });
             if (ratingChart) ratingChart.destroy();
             ratingChart = new Chart(ratingCtx, {
                 type: 'line',
-                data: { labels: ['★1', '★2', '★3', '★4', '★5'], datasets: [{ label: 'Games', data: ratingDist, borderColor: '#f59e0b', tension: 0.3, fill: true, backgroundColor: 'rgba(245,158,11,0.1)' }] },
-                options: { responsive: true, maintainAspectRatio: true, scales: { y: { ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } }
+                data: {
+                    labels: ['★1', '★2', '★3', '★4', '★5'],
+                    datasets: [{ label: 'Games', data: ratingDist, borderColor: '#f59e0b', tension: 0.3, fill: true, backgroundColor: 'rgba(245,158,11,0.1)' }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, scales: { y: { ticks: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } }, x: { ticks: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } } } }
             });
         }
     }
@@ -1492,18 +1358,25 @@
     function updateFilters() {
         const genres = [...new Set(gamesData.map(g => g.genre).filter(Boolean))];
         const platforms = [...new Set(gamesData.map(g => g.platform).filter(Boolean))];
-        document.getElementById('filterGenre').innerHTML = '<option value="">All Genres</option>' + genres.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
-        document.getElementById('filterPlatform').innerHTML = '<option value="">All Platforms</option>' + platforms.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+        
+        const genreSelect = document.getElementById('filterGenre');
+        const platformSelect = document.getElementById('filterPlatform');
+        
+        if (genreSelect) {
+            genreSelect.innerHTML = '<option value="">All Genres</option>' + genres.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+        }
+        if (platformSelect) {
+            platformSelect.innerHTML = '<option value="">All Platforms</option>' + platforms.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+        }
     }
 
-    // ============================================
-    // CRUD FUNCTIONS
-    // ============================================
+    // CRUD Functions
     async function fetchGames() {
         try {
             const { data, error } = await supabaseClient.from('games').select('*').order('created_at', { ascending: false });
             if (error) throw error;
             gamesData = data || [];
+            console.log(`Loaded ${gamesData.length} games`);
             renderLibrary();
             updateDashboard();
             updateFilters();
@@ -1515,6 +1388,7 @@
 
     async function saveGame(event) {
         event.preventDefault();
+        
         const id = document.getElementById('gameId')?.value;
         const game = {
             title: document.getElementById('title')?.value,
@@ -1526,26 +1400,45 @@
             hours_played: parseFloat(document.getElementById('hours_played')?.value || 0),
             status: document.getElementById('status')?.value,
             cover_url: currentCoverUrl || null,
+            date_added: document.getElementById('date_added')?.value || new Date().toISOString().split('T')[0],
+            last_played: document.getElementById('last_played')?.value || null,
             updated_at: new Date().toISOString()
         };
-        if (!game.title) { showNotification('Title is required!', 'error'); return; }
+        
+        if (!game.title) {
+            showNotification('Title is required!', 'error');
+            return;
+        }
+        
         try {
-            if (id) { await supabaseClient.from('games').update(game).eq('id', id); showNotification('Game updated!', 'success'); }
-            else { await supabaseClient.from('games').insert([{ ...game, created_at: new Date().toISOString() }]); showNotification('Game added!', 'success'); }
+            if (id) {
+                await supabaseClient.from('games').update(game).eq('id', id);
+                showNotification('Game updated!', 'success');
+            } else {
+                await supabaseClient.from('games').insert([{ ...game, created_at: new Date().toISOString() }]);
+                showNotification('Game added!', 'success');
+            }
             closeModal();
             fetchGames();
-        } catch (error) { showNotification('Failed to save game', 'error'); }
+        } catch (error) {
+            console.error('Error saving game:', error);
+            showNotification('Failed to save game', 'error');
+        }
     }
 
     async function deleteGame() {
         if (!deleteId) return;
-        try { await supabaseClient.from('games').delete().eq('id', deleteId); showNotification('Game deleted!', 'success'); fetchGames(); closeDeleteModal(); }
-        catch (error) { showNotification('Failed to delete', 'error'); }
+        try {
+            await supabaseClient.from('games').delete().eq('id', deleteId);
+            showNotification('Game deleted!', 'success');
+            fetchGames();
+            closeDeleteModal();
+        } catch (error) {
+            showNotification('Failed to delete', 'error');
+        }
     }
 
-    // ============================================
-    // MODAL FUNCTIONS
-    // ============================================
+    // Modal Functions
     function openEditModal(id) {
         const game = gamesData.find(g => g.id == id);
         if (game) {
@@ -1559,8 +1452,14 @@
             document.getElementById('rating').value = game.rating;
             document.getElementById('hours_played').value = game.hours_played || 0;
             document.getElementById('status').value = game.status;
+            document.getElementById('date_added').value = game.date_added || '';
+            document.getElementById('last_played').value = game.last_played || '';
             currentCoverUrl = game.cover_url;
-            if (currentCoverUrl) { document.getElementById('coverPreview').src = currentCoverUrl; document.getElementById('coverPreviewContainer').style.display = 'block'; }
+            
+            if (currentCoverUrl) {
+                document.getElementById('coverPreview').src = currentCoverUrl;
+                document.getElementById('coverPreviewContainer').style.display = 'block';
+            }
             document.getElementById('gameModal').style.display = 'flex';
         }
     }
@@ -1575,59 +1474,110 @@
         currentCoverUrl = null;
     }
 
-    function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; deleteId = null; }
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        deleteId = null;
+    }
 
-    // ============================================
-    // SEARCH AUTO-FILL
-    // ============================================
+    // Search Auto-fill
     let searchTimeout = null;
+
     function setupGameSearch() {
         const searchInput = document.getElementById('gameSearchInput');
         const resultsDiv = document.getElementById('searchResults');
+        
         if (!searchInput) return;
+        
         searchInput.addEventListener('input', async (e) => {
             const query = e.target.value.trim();
             if (searchTimeout) clearTimeout(searchTimeout);
-            if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
             searchTimeout = setTimeout(async () => {
                 resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center;"><i class="fas fa-spinner fa-pulse"></i> Searching...</div>';
                 resultsDiv.style.display = 'block';
+                
                 const results = await searchGamesFromAPI(query);
-                if (!results.length) { resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center;">No games found</div>'; return; }
-                resultsDiv.innerHTML = results.map(game => `<div class="search-result-item" data-game='${JSON.stringify(game)}'><img src="${game.cover || 'https://placehold.co/50x50/0078f0/white?text=?'}"><div><h4>${escapeHtml(game.name)}</h4><p>${game.genres || 'No genre'} | ⭐ ${game.rating}</p></div></div>`).join('');
+                
+                if (!results.length) {
+                    resultsDiv.innerHTML = '<div style="padding: 1rem; text-align: center;">No games found</div>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML = results.map(game => `
+                    <div class="search-result-item" data-game='${JSON.stringify(game)}'>
+                        <img src="${game.cover || 'https://placehold.co/50x50/8b5cf6/white?text=?'}" alt="${escapeHtml(game.name)}">
+                        <div>
+                            <h4>${escapeHtml(game.name)}</h4>
+                            <p>${game.genres || 'No genre'} | ⭐ ${game.rating}</p>
+                        </div>
+                    </div>
+                `).join('');
+                
                 document.querySelectorAll('.search-result-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const gameData = JSON.parse(item.dataset.game);
-                        document.getElementById('title').value = gameData.name;
-                        if (gameData.platforms) document.getElementById('platform').value = gameData.platforms.split(',')[0].trim();
-                        if (gameData.genres) { document.getElementById('genre').value = gameData.genres; document.getElementById('tags').value = gameData.genres.split(',').map(g => g.trim().toLowerCase()).join(', '); }
-                        if (gameData.rating) document.getElementById('rating').value = Math.min(5, Math.max(1, Math.round(gameData.rating * 2) / 2));
-                        if (gameData.cover) { currentCoverUrl = gameData.cover; document.getElementById('coverPreview').src = gameData.cover; document.getElementById('coverPreviewContainer').style.display = 'block'; }
+                        autoFillForm(gameData);
                         resultsDiv.style.display = 'none';
                         searchInput.value = '';
-                        showNotification(`Game "${gameData.name}" auto-filled!`, 'success');
                     });
                 });
             }, 500);
         });
-        document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) resultsDiv.style.display = 'none'; });
+        
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
     }
 
-    // ============================================
-    // TAB NAVIGATION
-    // ============================================
+    function autoFillForm(gameData) {
+        document.getElementById('title').value = gameData.name;
+        if (gameData.platforms) {
+            document.getElementById('platform').value = gameData.platforms.split(',')[0].trim();
+        }
+        if (gameData.genres) {
+            document.getElementById('genre').value = gameData.genres;
+            const tags = gameData.genres.split(',').map(g => g.trim().toLowerCase());
+            document.getElementById('tags').value = tags.join(', ');
+        }
+        if (gameData.rating) {
+            const rounded = Math.round(gameData.rating * 2) / 2;
+            document.getElementById('rating').value = Math.min(5, Math.max(1, rounded));
+        }
+        if (gameData.cover) {
+            currentCoverUrl = gameData.cover;
+            document.getElementById('coverPreview').src = gameData.cover;
+            document.getElementById('coverPreviewContainer').style.display = 'block';
+        }
+        if (!document.getElementById('date_added').value) {
+            document.getElementById('date_added').value = new Date().toISOString().split('T')[0];
+        }
+        showNotification(`Game "${gameData.name}" auto-filled!`, 'success');
+    }
+
+    // Tab Navigation
     function switchTab(tab) {
-        document.querySelectorAll('.nav-link, .nav-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll(`[data-tab="${tab}"]`).forEach(el => el.classList.add('active'));
+        document.querySelectorAll('.nav-link, .nav-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        document.querySelectorAll(`[data-tab="${tab}"]`).forEach(el => {
+            el.classList.add('active');
+        });
+        
         document.getElementById('dashboardSection').classList.toggle('active', tab === 'dashboard');
         document.getElementById('librarySection').classList.toggle('active', tab === 'library');
         document.getElementById('pageTitle').innerText = tab === 'dashboard' ? 'Dashboard' : 'Game Library';
+        
         if (tab === 'library') renderLibrary();
     }
 
-    // ============================================
-    // DARK MODE
-    // ============================================
+    // Dark Mode
     function setupDarkMode() {
         const darkModeToggle = document.getElementById('darkModeToggle');
         if (darkModeToggle) {
@@ -1642,30 +1592,22 @@
         }
     }
 
-    // ============================================
-    // PULL TO REFRESH (Mobile)
-    // ============================================
-    let touchStartY = 0;
-    document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
-    document.addEventListener('touchend', (e) => {
-        const touchEndY = e.changedTouches[0].clientY;
-        if (touchEndY - touchStartY > 100 && window.scrollY === 0) {
-            fetchGames();
-            showNotification('Refreshing...', 'success');
-        }
-    });
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
+    // Initialization
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Game Tracker Starting...');
+        
         setupGameSearch();
         setupDarkMode();
         
-        document.querySelectorAll('.nav-link, .nav-item').forEach(el => {
-            el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.tab); });
+        // Tab switching
+        document.querySelectorAll('.nav-link, .nav-item, .footer-section a[data-tab]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (el.dataset.tab) switchTab(el.dataset.tab);
+            });
         });
         
+        // Add game buttons
         document.getElementById('addGameBtn').addEventListener('click', () => {
             document.getElementById('modalTitle').innerText = 'Add New Game';
             document.getElementById('gameForm').reset();
@@ -1674,39 +1616,50 @@
             document.getElementById('rating').value = 3;
             document.getElementById('hours_played').value = 0;
             document.getElementById('status').value = 'backlog';
+            document.getElementById('date_added').value = new Date().toISOString().split('T')[0];
             document.getElementById('coverPreviewContainer').style.display = 'none';
             currentCoverUrl = null;
             document.getElementById('gameModal').style.display = 'flex';
         });
         
-        document.getElementById('mobileAddBtn')?.addEventListener('click', () => { document.getElementById('addGameBtn').click(); });
-        
-        document.querySelectorAll('.close-modal, .modal').forEach(el => {
-            el.addEventListener('click', function(e) { if (e.target === this || e.target.classList.contains('close-modal')) { closeModal(); closeDeleteModal(); } });
+        document.getElementById('mobileAddBtn')?.addEventListener('click', () => {
+            document.getElementById('addGameBtn').click();
         });
         
+        // Close modals
+        document.querySelectorAll('.close-modal, .modal').forEach(el => {
+            el.addEventListener('click', function(e) {
+                if (e.target === this || e.target.classList.contains('close-modal')) {
+                    closeModal();
+                    closeDeleteModal();
+                    document.getElementById('detailModal').style.display = 'none';
+                }
+            });
+        });
+        
+        // Delete buttons
         document.getElementById('confirmDeleteBtn').addEventListener('click', deleteGame);
         document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+        
+        // Save form
         document.getElementById('gameForm').addEventListener('submit', saveGame);
         
+        // Filters
         document.getElementById('searchInput').addEventListener('input', () => renderLibrary());
         document.getElementById('filterGenre').addEventListener('change', renderLibrary);
         document.getElementById('filterPlatform').addEventListener('change', renderLibrary);
         document.getElementById('filterRating').addEventListener('change', renderLibrary);
         document.getElementById('filterStatus').addEventListener('change', renderLibrary);
         
-        // Footer navigation
-        document.querySelectorAll('.footer-section a[data-tab]').forEach(link => {
-            link.addEventListener('click', (e) => { e.preventDefault(); switchTab(link.dataset.tab); });
-        });
-        
+        // Initial fetch
         fetchGames();
         
+        // Realtime subscription
         supabaseClient.channel('games-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => fetchGames())
             .subscribe();
         
-        setTimeout(() => initTilt(), 500);
+        console.log('✅ App Ready');
     });
 </script>
 </body>
