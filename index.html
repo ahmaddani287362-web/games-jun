@@ -3,20 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>GameJUN | Premium Game Tracker</title>
+    <title>GameVault | Google Sheets Database</title>
     
-    <meta name="description" content="Track your gaming journey with GameJUN - Smart game tracking with auto date management">
+    <meta name="description" content="Game tracker with Google Sheets database - FREE & PERMANENT">
     <meta name="theme-color" content="#8b5cf6">
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
@@ -35,11 +29,8 @@
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --info: #3b82f6;
             --sidebar-bg: #1e1b2e;
             --shadow: 0 20px 35px -10px rgba(0,0,0,0.08);
-            --rank-bg-light: rgba(0,0,0,0.75);
-            --rank-text-light: white;
         }
 
         .dark-mode {
@@ -51,8 +42,6 @@
             --border: #334155;
             --sidebar-bg: #0f0f1a;
             --accent-light: #2d2a4e;
-            --rank-bg-light: rgba(0,0,0,0.8);
-            --rank-text-light: white;
         }
 
         body {
@@ -62,10 +51,8 @@
             transition: all 0.3s ease;
         }
 
-        /* Layout */
         .app-container { display: flex; min-height: 100vh; }
         
-        /* Sidebar Desktop */
         .sidebar {
             width: 280px;
             background: var(--sidebar-bg);
@@ -106,10 +93,8 @@
         }
         .nav-link:hover, .nav-link.active { background: rgba(139, 92, 246, 0.2); color: white; }
 
-        /* Main Content */
         .main-content { flex: 1; margin-left: 280px; padding: 2rem; min-height: 100vh; }
 
-        /* Bottom Navigation Mobile */
         .bottom-nav {
             display: none;
             position: fixed;
@@ -146,7 +131,6 @@
             margin-top: -20px;
         }
 
-        /* Header */
         .content-header {
             display: flex;
             justify-content: space-between;
@@ -164,7 +148,6 @@
             color: transparent;
         }
 
-        /* Buttons */
         .btn-primary {
             background: linear-gradient(135deg, var(--accent), var(--accent-hover));
             border: none;
@@ -180,7 +163,6 @@
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4); }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -203,7 +185,6 @@
         .stat-card h3 { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); }
         .stat-card p { font-size: 2rem; font-weight: 700; }
 
-        /* Charts */
         .charts-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -218,7 +199,6 @@
         }
         .chart-card h4 { text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.85rem; }
 
-        /* Library Layout */
         .library-layout { display: flex; gap: 2rem; margin-bottom: 2rem; }
         .filter-sidebar {
             width: 260px;
@@ -259,7 +239,6 @@
             font-size: 0.85rem;
             cursor: pointer;
         }
-        .filter-select:hover, .filter-select:focus { border-color: var(--accent); outline: none; }
         .search-box-sidebar { margin-bottom: 1.5rem; }
         .search-box-sidebar input {
             width: 100%;
@@ -269,7 +248,6 @@
             border-radius: 14px;
             color: var(--text-primary);
         }
-        .search-box-sidebar input:focus { border-color: var(--accent); outline: none; }
         .filter-reset {
             width: 100%;
             padding: 10px;
@@ -284,15 +262,12 @@
         .filter-reset:hover { background: var(--accent); color: white; }
 
         .games-container { flex: 1; }
-
-        /* Games Grid */
         .games-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 1.5rem;
         }
 
-        /* Game Card */
         .game-card {
             background: var(--card-bg);
             border-radius: 24px;
@@ -317,7 +292,6 @@
         }
         .game-card:hover .game-cover img { transform: scale(1.05); }
 
-        /* Badges */
         .game-type-badge {
             position: absolute;
             top: 12px;
@@ -352,7 +326,6 @@
         .status-badge.onbreak { background: #f59e0b; color: white; }
         .status-badge.retired { background: #ef4444; color: white; }
 
-        /* Progress Bar (Offline) */
         .progress-overlay {
             position: absolute;
             bottom: 0;
@@ -367,12 +340,11 @@
             transition: width 0.3s;
         }
 
-        /* Rank Badge (Online) - FIXED VISIBILITY */
         .rank-badge {
             position: absolute;
             bottom: 12px;
             right: 12px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(8px);
             padding: 6px 12px;
             border-radius: 20px;
@@ -380,12 +352,8 @@
             font-weight: 700;
             z-index: 2;
             color: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        .rank-badge i {
-            margin-right: 4px;
-            color: #fbbf24;
-        }
+        .rank-badge i { margin-right: 4px; color: #fbbf24; }
 
         .card-content { padding: 1rem; }
         .game-title {
@@ -427,7 +395,6 @@
         .card-actions button:hover { color: var(--accent); background: rgba(139, 92, 246, 0.1); }
         .card-actions .delete-btn:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -458,7 +425,6 @@
         }
         .close-modal { font-size: 2rem; cursor: pointer; }
 
-        /* Game Type Toggle */
         .game-type-toggle {
             display: flex;
             gap: 1rem;
@@ -482,7 +448,6 @@
         }
         .hidden { display: none; }
 
-        /* Forms */
         .form-group { margin-bottom: 1rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         label { font-weight: 500; display: block; margin-bottom: 6px; font-size: 0.85rem; }
@@ -494,20 +459,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
         }
-        input:focus, select:focus { border-color: var(--accent); outline: none; }
 
-        /* Date Info Display */
-        .date-info {
-            background: var(--accent-light);
-            border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 1rem;
-            font-size: 0.8rem;
-        }
-        .date-info p { margin: 4px 0; }
-        .date-info i { width: 20px; color: var(--accent); }
-
-        /* Dark Mode Toggle */
         .dark-mode-toggle {
             display: flex;
             align-items: center;
@@ -547,7 +499,6 @@
         input:checked + .slider { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        /* Search Results */
         .search-results {
             position: absolute;
             top: 100%;
@@ -572,11 +523,9 @@
         .search-result-item:hover { background: var(--accent); color: white; }
         .search-result-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 12px; }
 
-        /* Section Toggle */
         .section { display: none; }
         .section.active { display: block; }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem;
@@ -584,7 +533,6 @@
             border-radius: 28px;
         }
 
-        /* Notification */
         .notification {
             position: fixed;
             bottom: 30px;
@@ -598,7 +546,6 @@
         .notification.success { background: linear-gradient(135deg, #10b981, #059669); }
         .notification.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
-        /* Cover Preview */
         .cover-preview {
             width: 100%;
             height: 150px;
@@ -607,7 +554,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Footer */
         .footer {
             margin-top: 4rem;
             padding: 3rem 2rem 2rem;
@@ -629,150 +575,6 @@
             font-size: 0.85rem;
         }
 
-        /* ============================================
-           PREMIUM DETAIL MODAL STYLES
-           ============================================ */
-        .detail-container {
-            animation: fadeInUp 0.4s ease;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .detail-hero-section {
-            position: relative;
-            margin: -2rem -2rem 1.5rem -2rem;
-            border-radius: 32px 32px 0 0;
-            overflow: hidden;
-        }
-        .detail-cover {
-            width: 100%;
-            height: 240px;
-            object-fit: cover;
-        }
-        .detail-cover-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to top, var(--bg-secondary), transparent);
-        }
-        .detail-title-section {
-            padding: 0 0.5rem;
-            margin-top: -40px;
-            position: relative;
-            z-index: 2;
-        }
-        .detail-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--text-primary), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .detail-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-        .detail-stat-card {
-            background: var(--bg-primary);
-            border-radius: 20px;
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.3s;
-            border: 1px solid var(--border);
-        }
-        .detail-stat-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent);
-        }
-        .detail-stat-icon {
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, var(--accent), #ec4899);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        .detail-stat-label {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .detail-stat-value {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-top: 0.25rem;
-        }
-        .detail-section {
-            background: var(--bg-primary);
-            border-radius: 20px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        .detail-section-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--accent);
-        }
-        .detail-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .detail-tag {
-            background: var(--card-bg);
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            border: 1px solid var(--border);
-        }
-        .detail-notes {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            font-size: 0.9rem;
-        }
-        .detail-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .detail-actions button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-detail-edit {
-            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-            border: none;
-            color: white;
-        }
-        .btn-detail-edit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4); }
-        .btn-detail-delete {
-            background: transparent;
-            border: 1px solid var(--danger);
-            color: var(--danger);
-        }
-        .btn-detail-delete:hover { background: var(--danger); color: white; transform: translateY(-2px); }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .main-content { margin-left: 0; padding: 1rem; padding-bottom: 80px; }
@@ -782,18 +584,13 @@
             .library-layout { flex-direction: column; }
             .filter-sidebar { width: 100%; position: static; }
             .form-row { grid-template-columns: 1fr; }
-            .detail-title { font-size: 1.4rem; }
-            .detail-hero-section { margin: -1rem -1rem 1rem -1rem; }
-            .detail-cover { height: 180px; }
-            .detail-stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <!-- Desktop Sidebar -->
     <aside class="sidebar">
-        <div class="logo-area"><i class="fas fa-dice-d6"></i><span>GameJUN</span></div>
+        <div class="logo-area"><i class="fas fa-dice-d6"></i><span>GameVault</span></div>
         <nav class="nav-menu">
             <a class="nav-link active" data-tab="dashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
             <a class="nav-link" data-tab="library"><i class="fas fa-gamepad"></i><span>My Library</span></a>
@@ -805,21 +602,18 @@
         </div>
     </aside>
 
-    <!-- Mobile Bottom Navigation -->
     <div class="bottom-nav">
         <button class="nav-item active" data-tab="dashboard"><i class="fas fa-chart-pie"></i><span>Stats</span></button>
         <button class="nav-item fab" id="mobileAddBtn"><i class="fas fa-plus"></i><span>Add</span></button>
         <button class="nav-item" data-tab="library"><i class="fas fa-gamepad"></i><span>Library</span></button>
     </div>
 
-    <!-- Main Content -->
     <main class="main-content">
         <header class="content-header">
             <h1 id="pageTitle">Dashboard</h1>
             <button id="addGameBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Game</button>
         </header>
 
-        <!-- Dashboard Section -->
         <section id="dashboardSection" class="section active">
             <div class="stats-grid">
                 <div class="stat-card"><i class="fas fa-gamepad"></i><div><h3>Total Games</h3><p id="totalGames">0</p></div></div>
@@ -834,14 +628,13 @@
             </div>
         </section>
 
-        <!-- Library Section -->
         <section id="librarySection" class="section">
             <div class="library-layout">
                 <aside class="filter-sidebar">
                     <h3><i class="fas fa-sliders-h"></i> Filters</h3>
                     <div class="search-box-sidebar"><input type="text" id="searchInput" placeholder="🔍 Search games..."></div>
                     <div class="filter-group">
-                        <label><i class="fas fa-tag"></i> Game Type</label>
+                        <label>Game Type</label>
                         <select id="filterGameType" class="filter-select">
                             <option value="">All Types</option>
                             <option value="offline">🎮 Offline Games</option>
@@ -849,15 +642,15 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label><i class="fas fa-tag"></i> Genre</label>
+                        <label>Genre</label>
                         <select id="filterGenre" class="filter-select"><option value="">All Genres</option></select>
                     </div>
                     <div class="filter-group">
-                        <label><i class="fas fa-desktop"></i> Platform</label>
+                        <label>Platform</label>
                         <select id="filterPlatform" class="filter-select"><option value="">All Platforms</option></select>
                     </div>
                     <div class="filter-group">
-                        <label><i class="fas fa-star"></i> Rating</label>
+                        <label>Rating</label>
                         <select id="filterRating" class="filter-select">
                             <option value="">All Ratings</option>
                             <option value="5">5 Stars ★★★★★</option>
@@ -866,7 +659,7 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label><i class="fas fa-flag-checkered"></i> Status</label>
+                        <label>Status</label>
                         <select id="filterStatus" class="filter-select">
                             <option value="">All Status</option>
                             <option value="completed">🏆 Completed</option>
@@ -881,19 +674,17 @@
                 </aside>
 
                 <div class="games-container">
-                    <div id="gamesGrid" class="games-grid"><div class="empty-state"><i class="fas fa-gamepad" style="font-size:3rem;margin-bottom:1rem"></i><p>Loading games...</p></div></div>
+                    <div id="gamesGrid" class="games-grid"><div class="empty-state"><i class="fas fa-gamepad" style="font-size:3rem;margin-bottom:1rem"></i><p>Loading games from Google Sheets...</p></div></div>
                 </div>
             </div>
         </section>
 
-        <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <div class="footer-section"><h4>🎮 GameJUN</h4><p style="color:var(--text-secondary)">Smart game tracking with auto date management.</p></div>
+                <div class="footer-section"><h4>🎮 GameVault</h4><p style="color:var(--text-secondary)">Powered by Google Sheets (FREE & PERMANENT)</p></div>
                 <div class="footer-section"><h4>Quick Links</h4><a href="#" data-tab="dashboard">📊 Dashboard</a><a href="#" data-tab="library">🎮 My Library</a></div>
-                <div class="footer-section"><h4>Resources</h4><a href="#">📖 Blog</a><a href="#">❓ FAQ</a></div>
             </div>
-            <div class="copyright"><p>&copy; 2026 GameJUN. Made with <i class="fas fa-heart" style="color:var(--accent)"></i> for gamers worldwide.</p></div>
+            <div class="copyright"><p>&copy; 2024 GameVault. Made with <i class="fas fa-heart" style="color:var(--accent)"></i> for gamers worldwide.</p></div>
         </footer>
     </main>
 </div>
@@ -958,14 +749,7 @@
             </div>
             
             <div class="form-row"><div class="form-group"><label>Playtime (Hours)</label><input type="number" id="playtime" step="0.5" value="0"></div><div class="form-group"><label>Rating (1-5)</label><input type="number" id="rating" step="0.5" min="1" max="5" value="3"></div></div>
-            <div class="form-group"><label>Notes (Optional)</label><textarea id="notes" rows="2" placeholder="Your thoughts about this game..."></textarea></div>
-            
-            <div id="dateInfo" class="date-info hidden">
-                <p><i class="fas fa-calendar-plus"></i> <strong>Auto Date Management:</strong></p>
-                <p><i class="fas fa-play-circle"></i> <span id="dateStartedDisplay">Date started will be set when status changes to Playing/Active</span></p>
-                <p><i class="fas fa-save"></i> <span id="lastPlayedDisplay">Last played updates automatically on save</span></p>
-                <p><i class="fas fa-flag-checkered"></i> <span id="dateCompletedDisplay">Completion date set when status = Completed/Retired</span></p>
-            </div>
+            <div class="form-group"><label>Notes (Optional)</label><textarea id="notes" rows="2"></textarea></div>
             
             <button type="submit" class="btn-primary" style="width:100%">💾 Save Game</button>
         </form>
@@ -989,15 +773,17 @@
 
 <script>
     // ============================================
-    // GAME TRACKER - PREMIUM VERSION
+    // GAME TRACKER - GOOGLE SHEETS APPS SCRIPT
+    // 100% FREE & PERMANENT
     // ============================================
 
-    const SUPABASE_URL = 'https://inwjlxiqxtztjtrttqke.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_ntFp5P_qMnQKQSv3-MX9RA_dgOit_H1';
     const RAWG_API_KEY = 'acb03a4a2dd04337b6b62eb78e325c59';
-
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    
+    // ============================================
+    // GANTI DENGAN URL APPS SCRIPT ANDA!
+    // ============================================
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw-kOukS60Y1iXi61fk7euDeAwreRa24X8IGU0Es2xi9V_zBIh7xCPiKrsZJZdBVPJ/exec';
+    
     let gamesData = [];
     let genreChart, completionChart, ratingChart;
     let currentCoverUrl = null;
@@ -1030,15 +816,154 @@
     }
 
     function showNotification(message, type) {
-        let notification = document.getElementById('notification');
-        if (!notification) { notification = document.createElement('div'); notification.id = 'notification'; document.body.appendChild(notification); }
-        notification.textContent = message;
-        notification.className = `notification ${type}`;
-        notification.style.display = 'block';
-        setTimeout(() => notification.style.display = 'none', 3000);
+        Swal.fire({
+            title: type === 'success' ? 'Success!' : 'Error!',
+            text: message,
+            icon: type,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            background: document.body.classList.contains('dark-mode') ? '#1e293b' : '#ffffff',
+            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#0f172a'
+        });
     }
 
-    // RAWG API
+    // ============================================
+    // GOOGLE SHEETS CRUD via Apps Script
+    // ============================================
+    
+    async function fetchGames() {
+        try {
+            const response = await fetch(APPS_SCRIPT_URL);
+            const data = await response.json();
+            gamesData = Array.isArray(data) ? data : [];
+            console.log(`Loaded ${gamesData.length} games from Google Sheets`);
+            renderLibrary();
+            updateDashboard();
+            updateFilters();
+            if (gamesData.length === 0) {
+                showNotification('No games found. Add your first game!', 'info');
+            }
+        } catch (error) {
+            console.error('Error fetching from Google Sheets:', error);
+            showNotification('Failed to load data. Make sure Apps Script is deployed!', 'error');
+            gamesData = [];
+            renderLibrary();
+        }
+    }
+    
+    async function saveGame(event) {
+        event.preventDefault();
+        
+        const id = document.getElementById('gameId')?.value;
+        const category = document.getElementById('gameType')?.value || 'offline';
+        const now = getTodayDate();
+        
+        let status = '';
+        if (category === 'offline') status = document.getElementById('offlineStatus')?.value;
+        else status = document.getElementById('onlineStatus')?.value;
+        
+        const game = {
+            title: document.getElementById('title')?.value,
+            image_url: currentCoverUrl || '',
+            category: category,
+            status: status,
+            playtime: parseInt(document.getElementById('playtime')?.value || 0),
+            platform: document.getElementById('platform')?.value || '',
+            genre: document.getElementById('genre')?.value || '',
+            tags: document.getElementById('tags')?.value || '',
+            rating: parseFloat(document.getElementById('rating')?.value || 3),
+            notes: document.getElementById('notes')?.value || '',
+            last_played: now,
+            updated_at: now
+        };
+        
+        if (!game.title) { showNotification('Title is required!', 'error'); return; }
+        
+        // Generate new ID if not exists
+        if (!id) {
+            const maxId = gamesData.length > 0 ? Math.max(...gamesData.map(g => parseInt(g.id) || 0)) : 0;
+            game.id = maxId + 1;
+            game.created_at = now;
+        } else {
+            game.id = parseInt(id);
+        }
+        
+        if (category === 'offline') {
+            game.progress = parseInt(document.getElementById('progress')?.value || 0);
+            game.date_started = document.getElementById('dateStarted')?.value || '';
+            game.date_completed = status === 'completed' ? now : '';
+            // Clear online fields
+            game.rank_level = '';
+            game.custom_rank = '';
+            game.total_matches = 0;
+            game.win_rate = 0;
+        } else {
+            game.rank_level = document.getElementById('rankLevel')?.value;
+            game.custom_rank = document.getElementById('customRank')?.value || '';
+            game.total_matches = parseInt(document.getElementById('totalMatches')?.value || 0);
+            game.win_rate = parseInt(document.getElementById('winRate')?.value || 0);
+            game.date_started = document.getElementById('dateStartedOnline')?.value || '';
+            game.date_completed = status === 'retired' ? now : '';
+            // Clear offline fields
+            game.progress = 0;
+        }
+        
+        try {
+            let response;
+            if (id) {
+                // Update existing game
+                response = await fetch(`${APPS_SCRIPT_URL}?id=${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(game)
+                });
+            } else {
+                // Add new game
+                response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(game)
+                });
+            }
+            
+            const result = await response.json();
+            if (result.success) {
+                showNotification(result.message, 'success');
+                closeModal();
+                fetchGames();
+            } else {
+                showNotification(result.error || 'Failed to save game', 'error');
+            }
+        } catch (error) {
+            console.error('Error saving game:', error);
+            showNotification('Failed to save game', 'error');
+        }
+    }
+    
+    async function deleteGame() {
+        if (!deleteId) return;
+        
+        try {
+            const response = await fetch(`${APPS_SCRIPT_URL}?id=${deleteId}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            if (result.success) {
+                showNotification('Game deleted successfully!', 'success');
+                fetchGames();
+                closeDeleteModal();
+            } else {
+                showNotification(result.error || 'Failed to delete game', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            showNotification('Failed to delete game', 'error');
+        }
+    }
+
+    // RAWG API Search
     async function searchGamesFromAPI(query) {
         if (!query || query.length < 2) return [];
         try {
@@ -1056,7 +981,7 @@
         } catch (error) { console.error('Search error:', error); return []; }
     }
 
-    // Render Library with Delete Button
+    // Render Library
     function renderLibrary() {
         const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
         const gameTypeFilter = document.getElementById('filterGameType')?.value || '';
@@ -1137,129 +1062,89 @@
         document.querySelectorAll('.delete-game').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteId = btn.dataset.id; document.getElementById('deleteModal').style.display = 'flex'; }));
     }
 
-    // Premium Show Game Detail
     function showGameDetail(id) {
         const game = gamesData.find(g => g.id == id);
         if (!game) return;
         
         const isOffline = game.category === 'offline';
-        const dateAdded = game.created_at ? new Date(game.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set';
         const coverImg = game.image_url || `https://placehold.co/800x400/1e1b2e/8b5cf6?text=${encodeURIComponent(game.title.substring(0,1))}`;
         
-        // Build stats HTML
         let statsHtml = `
-            <div class="detail-stat-card">
-                <div class="detail-stat-icon"><i class="fas fa-tag"></i></div>
-                <div class="detail-stat-label">Genre</div>
-                <div class="detail-stat-value">${escapeHtml(game.genre) || '—'}</div>
+            <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-tag" style="color:var(--accent)"></i></div>
+                <div style="font-size:0.7rem; color:var(--text-secondary)">Genre</div>
+                <div style="font-weight:700">${escapeHtml(game.genre) || '—'}</div>
             </div>
-            <div class="detail-stat-card">
-                <div class="detail-stat-icon"><i class="fas fa-desktop"></i></div>
-                <div class="detail-stat-label">Platform</div>
-                <div class="detail-stat-value">${escapeHtml(game.platform) || '—'}</div>
+            <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-desktop" style="color:var(--accent)"></i></div>
+                <div style="font-size:0.7rem; color:var(--text-secondary)">Platform</div>
+                <div style="font-weight:700">${escapeHtml(game.platform) || '—'}</div>
             </div>
-            <div class="detail-stat-card">
-                <div class="detail-stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="detail-stat-label">Playtime</div>
-                <div class="detail-stat-value">${game.playtime || 0} hours</div>
+            <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-clock" style="color:var(--accent)"></i></div>
+                <div style="font-size:0.7rem; color:var(--text-secondary)">Playtime</div>
+                <div style="font-weight:700">${game.playtime || 0} hours</div>
             </div>
-            <div class="detail-stat-card">
-                <div class="detail-stat-icon"><i class="fas fa-star"></i></div>
-                <div class="detail-stat-label">Rating</div>
-                <div class="detail-stat-value">${renderStars(game.rating || 0)}</div>
+            <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-star" style="color:var(--accent)"></i></div>
+                <div style="font-size:0.7rem; color:var(--text-secondary)">Rating</div>
+                <div style="font-weight:700">${renderStars(game.rating || 0)}</div>
             </div>
         `;
         
         if (isOffline) {
             statsHtml += `
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="detail-stat-label">Progress</div>
-                    <div class="detail-stat-value">${game.progress || 0}%</div>
+                <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                    <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-chart-line" style="color:var(--accent)"></i></div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary)">Progress</div>
+                    <div style="font-weight:700">${game.progress || 0}%</div>
                 </div>
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-flag-checkered"></i></div>
-                    <div class="detail-stat-label">Status</div>
-                    <div class="detail-stat-value">${game.status?.toUpperCase() || 'BACKLOG'}</div>
+                <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                    <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-flag-checkered" style="color:var(--accent)"></i></div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary)">Status</div>
+                    <div style="font-weight:700">${game.status?.toUpperCase() || 'BACKLOG'}</div>
                 </div>
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="detail-stat-label">Started</div>
-                    <div class="detail-stat-value">${formatDate(game.date_started)}</div>
-                </div>
-                ${game.date_completed ? `<div class="detail-stat-card"><div class="detail-stat-icon"><i class="fas fa-calendar-check"></i></div><div class="detail-stat-label">Completed</div><div class="detail-stat-value">${formatDate(game.date_completed)}</div></div>` : ''}
             `;
         } else {
             statsHtml += `
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-trophy"></i></div>
-                    <div class="detail-stat-label">Rank</div>
-                    <div class="detail-stat-value">${getRankDisplay(game.rank_level, game.custom_rank)}</div>
+                <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                    <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-trophy" style="color:var(--accent)"></i></div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary)">Rank</div>
+                    <div style="font-weight:700">${getRankDisplay(game.rank_level, game.custom_rank)}</div>
                 </div>
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-crosshairs"></i></div>
-                    <div class="detail-stat-label">Matches</div>
-                    <div class="detail-stat-value">${game.total_matches || 0}</div>
+                <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                    <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-crosshairs" style="color:var(--accent)"></i></div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary)">Matches</div>
+                    <div style="font-weight:700">${game.total_matches || 0}</div>
                 </div>
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-chart-simple"></i></div>
-                    <div class="detail-stat-label">Win Rate</div>
-                    <div class="detail-stat-value">${game.win_rate || 0}%</div>
+                <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                    <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-chart-simple" style="color:var(--accent)"></i></div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary)">Win Rate</div>
+                    <div style="font-weight:700">${game.win_rate || 0}%</div>
                 </div>
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-flag-checkered"></i></div>
-                    <div class="detail-stat-label">Status</div>
-                    <div class="detail-stat-value">${game.status?.toUpperCase() || 'ACTIVE'}</div>
-                </div>
-                <div class="detail-stat-card">
-                    <div class="detail-stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="detail-stat-label">Account Created</div>
-                    <div class="detail-stat-value">${formatDate(game.date_started)}</div>
+                <div style="background:var(--bg-primary); padding:1rem; border-radius:20px; text-align:center">
+                    <div style="font-size:1.8rem; margin-bottom:0.5rem"><i class="fas fa-flag-checkered" style="color:var(--accent)"></i></div>
+                    <div style="font-size:0.7rem; color:var(--text-secondary)">Status</div>
+                    <div style="font-weight:700">${game.status?.toUpperCase() || 'ACTIVE'}</div>
                 </div>
             `;
         }
         
-        const tagsHtml = game.tags ? game.tags.split(',').map(t => `<span class="detail-tag">#${escapeHtml(t.trim())}</span>`).join('') : '<span class="detail-tag">No tags</span>';
-        
         const detailHtml = `
-            <div class="detail-container">
-                <div class="detail-hero-section">
-                    <img class="detail-cover" src="${coverImg}" onerror="this.src='https://placehold.co/800x400/1e1b2e/8b5cf6?text=${encodeURIComponent(game.title.substring(0,2))}'">
-                    <div class="detail-cover-overlay"></div>
-                </div>
-                <div class="detail-title-section">
-                    <h2 class="detail-title">${escapeHtml(game.title)}</h2>
-                </div>
-                
-                <div class="detail-stats-grid">
-                    ${statsHtml}
-                </div>
-                
-                <div class="detail-section">
-                    <div class="detail-section-title"><i class="fas fa-tags"></i> Tags</div>
-                    <div class="detail-tags">${tagsHtml}</div>
-                </div>
-                
-                ${game.notes ? `
-                <div class="detail-section">
-                    <div class="detail-section-title"><i class="fas fa-pen"></i> Notes</div>
-                    <div class="detail-notes">${escapeHtml(game.notes)}</div>
-                </div>
-                ` : ''}
-                
-                <div class="detail-section">
-                    <div class="detail-section-title"><i class="fas fa-info-circle"></i> Additional Info</div>
-                    <div class="detail-notes">
-                        <p><strong>Added to library:</strong> ${dateAdded}</p>
-                        <p><strong>Last played:</strong> ${formatDate(game.last_played)}</p>
-                        ${game.date_completed ? `<p><strong>Completion date:</strong> ${formatDate(game.date_completed)}</p>` : ''}
-                    </div>
-                </div>
-                
-                <div class="detail-actions">
-                    <button class="btn-detail-edit" onclick="openEditModal('${game.id}'); document.getElementById('detailModal').style.display='none'"><i class="fas fa-edit"></i> Edit Game</button>
-                    <button class="btn-detail-delete" onclick="deleteId='${game.id}'; document.getElementById('detailModal').style.display='none'; document.getElementById('deleteModal').style.display='flex'"><i class="fas fa-trash-alt"></i> Delete Game</button>
-                </div>
+            <div style="position:relative; margin:-2rem -2rem 1rem -2rem; border-radius:32px 32px 0 0; overflow:hidden">
+                <img src="${coverImg}" style="width:100%; height:200px; object-fit:cover" onerror="this.src='https://placehold.co/800x400/1e1b2e/8b5cf6?text=${encodeURIComponent(game.title.substring(0,2))}'">
+                <div style="position:absolute; bottom:0; left:0; right:0; height:50%; background:linear-gradient(to top, var(--bg-secondary), transparent)"></div>
+            </div>
+            <div style="padding:0 0.5rem; margin-top:-30px; position:relative">
+                <h2 style="font-size:1.8rem; font-weight:800; margin-bottom:0.5rem">${escapeHtml(game.title)}</h2>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1rem; margin:1.5rem 0">
+                ${statsHtml}
+            </div>
+            ${game.notes ? `<div style="background:var(--bg-primary); padding:1rem; border-radius:20px; margin:1rem 0"><strong><i class="fas fa-pen"></i> Notes:</strong><br>${escapeHtml(game.notes)}</div>` : ''}
+            <div style="display:flex; gap:1rem; margin-top:1.5rem">
+                <button onclick="openEditModal('${game.id}'); document.getElementById('detailModal').style.display='none'" style="flex:1; padding:12px; background:linear-gradient(135deg, var(--accent), var(--accent-hover)); border:none; border-radius:40px; color:white; cursor:pointer"><i class="fas fa-edit"></i> Edit Game</button>
+                <button onclick="deleteId='${game.id}'; document.getElementById('detailModal').style.display='none'; document.getElementById('deleteModal').style.display='flex'" style="flex:1; padding:12px; background:transparent; border:1px solid var(--danger); border-radius:40px; color:var(--danger); cursor:pointer"><i class="fas fa-trash-alt"></i> Delete Game</button>
             </div>
         `;
         
@@ -1267,7 +1152,6 @@
         document.getElementById('detailModal').style.display = 'flex';
     }
 
-    // Dashboard & Charts
     function updateDashboard() {
         const total = gamesData.length;
         const completed = gamesData.filter(g => (g.category === 'offline' && g.status === 'completed') || (g.category === 'online' && g.status === 'active')).length;
@@ -1353,120 +1237,11 @@
         renderLibrary();
     }
 
-    // Smart Date Management
-    function updateDatesBasedOnStatus(category, status, oldStatus, currentData) {
-        const today = getTodayDate();
-        let updates = { last_played: today };
-        
-        if (category === 'offline') {
-            if (status === 'playing' && (!currentData.date_started || oldStatus !== 'playing')) updates.date_started = today;
-            if (status === 'completed' && oldStatus !== 'completed') updates.date_completed = today;
-            if (status !== 'completed' && oldStatus === 'completed') updates.date_completed = null;
-        } else {
-            if (status === 'active' && !currentData.date_started) updates.date_started = today;
-            if (status === 'retired' && oldStatus !== 'retired') updates.date_completed = today;
-        }
-        return updates;
-    }
-
-    // CRUD Functions
-    async function fetchGames() {
-        try {
-            const { data, error } = await supabaseClient.from('games').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            gamesData = data || [];
-            console.log(`Loaded ${gamesData.length} games`);
-            renderLibrary();
-            updateDashboard();
-            updateFilters();
-        } catch (error) { console.error('Error fetching games:', error); showNotification('Failed to load games', 'error'); }
-    }
-
-    async function saveGame(event) {
-        event.preventDefault();
-        const id = document.getElementById('gameId')?.value;
-        const now = new Date().toISOString();
-        const category = document.getElementById('gameType')?.value || 'offline';
-        
-        let oldGame = null;
-        if (id) oldGame = gamesData.find(g => g.id == id);
-        
-        let status = '';
-        if (category === 'offline') status = document.getElementById('offlineStatus')?.value;
-        else status = document.getElementById('onlineStatus')?.value;
-        
-        const baseGame = {
-            title: document.getElementById('title')?.value,
-            rawg_id: currentRawgId || null,
-            image_url: currentCoverUrl || null,
-            category: category,
-            status: status,
-            playtime: parseInt(document.getElementById('playtime')?.value || 0),
-            platform: document.getElementById('platform')?.value || null,
-            genre: document.getElementById('genre')?.value || null,
-            tags: document.getElementById('tags')?.value || null,
-            rating: parseFloat(document.getElementById('rating')?.value || 3),
-            notes: document.getElementById('notes')?.value || null,
-            updated_at: now
-        };
-        
-        if (!baseGame.title) { showNotification('Title is required!', 'error'); return; }
-        
-        let dateStarted = null;
-        if (category === 'offline') dateStarted = document.getElementById('dateStarted')?.value || null;
-        else dateStarted = document.getElementById('dateStartedOnline')?.value || null;
-        
-        let game = { ...baseGame, date_started: dateStarted };
-        
-        if (category === 'offline') {
-            game.progress = parseInt(document.getElementById('progress')?.value || 0);
-            game.rank_level = null; game.custom_rank = null; game.total_matches = null; game.win_rate = null;
-        } else {
-            game.rank_level = document.getElementById('rankLevel')?.value;
-            game.custom_rank = document.getElementById('customRank')?.value || null;
-            game.total_matches = parseInt(document.getElementById('totalMatches')?.value || 0);
-            game.win_rate = parseInt(document.getElementById('winRate')?.value || 0);
-            game.progress = null;
-        }
-        
-        if (oldGame) {
-            const dateUpdates = updateDatesBasedOnStatus(category, status, oldGame.status, oldGame);
-            game = { ...game, ...dateUpdates };
-        } else {
-            game.last_played = getTodayDate();
-            if ((category === 'offline' && status === 'playing' && !game.date_started) ||
-                (category === 'online' && status === 'active' && !game.date_started)) {
-                game.date_started = getTodayDate();
-            }
-        }
-        
-        try {
-            if (id) {
-                await supabaseClient.from('games').update(game).eq('id', id);
-                showNotification('Game updated!', 'success');
-            } else {
-                game.created_at = now;
-                await supabaseClient.from('games').insert([game]);
-                showNotification('Game added!', 'success');
-            }
-            closeModal();
-            fetchGames();
-        } catch (error) { console.error('Error saving game:', error); showNotification('Failed to save game: ' + error.message, 'error'); }
-    }
-
-    async function deleteGame() {
-        if (!deleteId) return;
-        try { await supabaseClient.from('games').delete().eq('id', deleteId); showNotification('Game deleted!', 'success'); fetchGames(); closeDeleteModal(); }
-        catch (error) { showNotification('Failed to delete', 'error'); }
-    }
-
-    // Modal Functions
     function openEditModal(id) {
         const game = gamesData.find(g => g.id == id);
         if (game) {
             document.getElementById('modalTitle').innerText = 'Edit Game';
             document.getElementById('gameId').value = game.id;
-            document.getElementById('rawgId').value = game.rawg_id || '';
             document.getElementById('title').value = game.title;
             document.getElementById('platform').value = game.platform || '';
             document.getElementById('genre').value = game.genre || '';
@@ -1475,7 +1250,6 @@
             document.getElementById('playtime').value = game.playtime || 0;
             document.getElementById('notes').value = game.notes || '';
             currentCoverUrl = game.image_url;
-            currentRawgId = game.rawg_id;
             if (currentCoverUrl) { document.getElementById('coverPreview').src = currentCoverUrl; document.getElementById('coverPreviewContainer').style.display = 'block'; }
             
             const isOffline = game.category === 'offline';
@@ -1502,11 +1276,6 @@
                 document.getElementById('offlineFields').classList.add('hidden');
             }
             
-            document.getElementById('dateInfo').classList.remove('hidden');
-            document.getElementById('dateStartedDisplay').innerHTML = game.date_started ? `Date started: ${formatDate(game.date_started)}` : 'Not set yet';
-            document.getElementById('lastPlayedDisplay').innerHTML = game.last_played ? `Last played: ${formatDate(game.last_played)}` : 'Never played';
-            document.getElementById('dateCompletedDisplay').innerHTML = game.date_completed ? `Completed: ${formatDate(game.date_completed)}` : 'Not completed yet';
-            
             document.getElementById('gameModal').style.display = 'flex';
         }
     }
@@ -1515,18 +1284,15 @@
         document.getElementById('gameModal').style.display = 'none';
         document.getElementById('gameForm').reset();
         document.getElementById('gameId').value = '';
-        document.getElementById('rawgId').value = '';
         document.getElementById('coverPreviewContainer').style.display = 'none';
         document.getElementById('searchResults').style.display = 'none';
         document.getElementById('gameSearchInput').value = '';
-        document.getElementById('dateInfo').classList.add('hidden');
         currentCoverUrl = null;
         currentRawgId = null;
     }
 
     function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; deleteId = null; }
 
-    // Game Type Toggle
     function setupGameTypeToggle() {
         const options = document.querySelectorAll('.type-option');
         options.forEach(opt => {
@@ -1546,7 +1312,6 @@
         });
     }
 
-    // Search Auto-fill
     let searchTimeout = null;
     function setupGameSearch() {
         const searchInput = document.getElementById('gameSearchInput');
@@ -1593,7 +1358,6 @@
         document.addEventListener('click', (e) => { if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) resultsDiv.style.display = 'none'; });
     }
 
-    // Tab Navigation
     function switchTab(tab) {
         document.querySelectorAll('.nav-link, .nav-item').forEach(el => el.classList.remove('active'));
         document.querySelectorAll(`[data-tab="${tab}"]`).forEach(el => el.classList.add('active'));
@@ -1603,7 +1367,6 @@
         if (tab === 'library') renderLibrary();
     }
 
-    // Dark Mode
     function setupDarkMode() {
         const darkModeToggle = document.getElementById('darkModeToggle');
         if (darkModeToggle) {
@@ -1620,7 +1383,7 @@
 
     // Initialization
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('🚀 Game Tracker Premium Starting...');
+        console.log('🚀 Game Tracker with Google Sheets Starting...');
         setupGameSearch();
         setupDarkMode();
         setupGameTypeToggle();
@@ -1635,7 +1398,6 @@
             document.getElementById('modalTitle').innerText = 'Add New Game';
             document.getElementById('gameForm').reset();
             document.getElementById('gameId').value = '';
-            document.getElementById('rawgId').value = '';
             document.getElementById('progress').value = 0;
             document.getElementById('rating').value = 3;
             document.getElementById('playtime').value = 0;
@@ -1647,7 +1409,6 @@
             document.getElementById('onlineFields').classList.add('hidden');
             document.querySelector('.type-option[data-type="offline"]').classList.add('active');
             document.querySelector('.type-option[data-type="online"]').classList.remove('active');
-            document.getElementById('dateInfo').classList.add('hidden');
             document.getElementById('gameModal').style.display = 'flex';
         });
         
@@ -1669,8 +1430,7 @@
         document.getElementById('filterStatus').addEventListener('change', renderLibrary);
         
         fetchGames();
-        supabaseClient.channel('games-channel').on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => fetchGames()).subscribe();
-        console.log('✅ App Ready');
+        console.log('✅ App Ready - Connected to Google Sheets!');
     });
 </script>
 </body>
