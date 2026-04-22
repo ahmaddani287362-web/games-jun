@@ -769,22 +769,26 @@
 
 <script>
     // ============================================
-    // GAME TRACKER - GOOGLE APPS SCRIPT + CORS PROXY
-    // FULL CRUD KE GOOGLE SHEETS
+    // GAME TRACKER - GOOGLE APPS SCRIPT + PROXY
+    // MENGGUNAKAN PROXY YANG MASIH HIDUP
     // ============================================
 
     const RAWG_API_KEY = 'acb03a4a2dd04337b6b62eb78e325c59';
     
-    // ============================================
-    // KONFIGURASI - GANTI DENGAN URL APPS SCRIPT ANDA
-    // ============================================
+    // APPS SCRIPT URL (GANTI DENGAN URL ANDA)
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJcLSSs0GzApLHZpf-CYiw4Y_IPzK-zr5Ct7mBQXhZEoS0iLlcnBx-8wPsiq4j49qQ/exec';
     
-    // CORS Proxy (gratis, support POST/PUT/DELETE)
-    const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
-    // Alternatif proxy lain jika cors-anywhere bermasalah:
-    // const PROXY_URL = 'https://api.allorigins.win/raw?url=';
-    // const PROXY_URL = 'https://thingproxy.freeboard.io/fetch/';
+    // ============================================
+    // PROXY YANG MASIH BERFUNGSI (PILIH SALAH SATU)
+    // ============================================
+    // Opsi 1: allorigins (paling stabil untuk GET)
+    const PROXY_GET = 'https://api.allorigins.win/get?url=';
+    
+    // Opsi 2: corsproxy.io (untuk POST/PUT/DELETE)
+    const PROXY_POST = 'https://corsproxy.io/?url=';
+    
+    // Opsi 3: thingproxy (cadangan)
+    // const PROXY_GET = 'https://thingproxy.freeboard.io/fetch/';
     
     let gamesData = [];
     let genreChart, completionChart, ratingChart;
@@ -832,16 +836,25 @@
     }
 
     // ============================================
-    // GOOGLE SHEETS CRUD via APPS SCRIPT + PROXY
+    // FETCH DATA DARI APPS SCRIPT VIA PROXY
     // ============================================
     
     async function fetchGames() {
         try {
             showNotification('Loading data from Google Sheets...', 'info');
-            // Untuk GET, kita bisa langsung pake proxy
-            const url = PROXY_URL + APPS_SCRIPT_URL;
-            const response = await fetch(url);
-            const data = await response.json();
+            // Untuk GET, pakai allorigins (paling stabil)
+            const proxyUrl = PROXY_GET + encodeURIComponent(APPS_SCRIPT_URL);
+            const response = await fetch(proxyUrl);
+            const result = await response.json();
+            
+            // allorigins membungkus response di dalam properti 'contents'
+            let data;
+            if (result.contents) {
+                data = JSON.parse(result.contents);
+            } else {
+                data = result;
+            }
+            
             gamesData = Array.isArray(data) ? data : [];
             console.log(`Loaded ${gamesData.length} games from Google Sheets`);
             renderLibrary();
@@ -914,41 +927,55 @@
         
         try {
             let response;
-            if (id) {
-                // UPDATE
-                response = await fetch(PROXY_URL + APPS_SCRIPT_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(game)
-                });
-            } else {
-                // CREATE
-                response = await fetch(PROXY_URL + APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(game)
-                });
-            }
+            const method = id ? 'PUT' : 'POST';
+            const proxyUrl = PROXY_POST + encodeURIComponent(APPS_SCRIPT_URL);
+            
+            response = await fetch(proxyUrl, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(game)
+            });
             
             const result = await response.json();
             if (result.success) {
-                showNotification(result.message, 'success');
+                showNotification(result.message || (id ? 'Game updated!' : 'Game added!'), 'success');
                 closeModal();
-                fetchGames(); // Refresh data
+                fetchGames();
             } else {
-                showNotification(result.error || 'Failed to save game', 'error');
+                // Jika proxy POST gagal, simpan ke localStorage sebagai backup
+                saveToLocalStorage(game, id);
             }
         } catch (error) {
             console.error('Error saving game:', error);
-            showNotification('Failed to save game. Check CORS proxy.', 'error');
+            // Fallback ke localStorage
+            saveToLocalStorage(game, id);
         }
+    }
+    
+    function saveToLocalStorage(game, id) {
+        let savedGames = JSON.parse(localStorage.getItem('gamevault_games') || '[]');
+        if (id) {
+            const index = savedGames.findIndex(g => g.id == id);
+            if (index !== -1) savedGames[index] = game;
+            else savedGames.push(game);
+        } else {
+            savedGames.push(game);
+        }
+        localStorage.setItem('gamevault_games', JSON.stringify(savedGames));
+        gamesData = savedGames;
+        showNotification('Game saved to local storage (backup mode)', 'success');
+        closeModal();
+        renderLibrary();
+        updateDashboard();
+        updateFilters();
     }
     
     async function deleteGame() {
         if (!deleteId) return;
         
         try {
-            const response = await fetch(`${PROXY_URL}${APPS_SCRIPT_URL}?id=${deleteId}`, {
+            const proxyUrl = PROXY_POST + encodeURIComponent(APPS_SCRIPT_URL + '?id=' + deleteId);
+            const response = await fetch(proxyUrl, {
                 method: 'DELETE'
             });
             const result = await response.json();
@@ -957,11 +984,20 @@
                 fetchGames();
                 closeDeleteModal();
             } else {
-                showNotification(result.error || 'Failed to delete game', 'error');
+                throw new Error('Delete failed');
             }
         } catch (error) {
             console.error('Error deleting game:', error);
-            showNotification('Failed to delete game', 'error');
+            // Fallback ke localStorage
+            let savedGames = JSON.parse(localStorage.getItem('gamevault_games') || '[]');
+            savedGames = savedGames.filter(g => g.id != deleteId);
+            localStorage.setItem('gamevault_games', JSON.stringify(savedGames));
+            gamesData = savedGames;
+            showNotification('Game deleted from local storage', 'success');
+            renderLibrary();
+            updateDashboard();
+            updateFilters();
+            closeDeleteModal();
         }
     }
 
@@ -1385,7 +1421,7 @@
 
     // Initialization
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('🚀 Game Tracker with Google Apps Script + CORS Proxy Starting...');
+        console.log('🚀 Game Tracker with Google Apps Script + Proxy Starting...');
         
         setupGameSearch();
         setupDarkMode();
@@ -1433,7 +1469,7 @@
         document.getElementById('filterStatus').addEventListener('change', renderLibrary);
         
         fetchGames();
-        console.log('✅ App Ready - Connected to Google Sheets via Apps Script + Proxy!');
+        console.log('✅ App Ready - Connected to Google Sheets via Proxy!');
     });
 </script>
 </body>
