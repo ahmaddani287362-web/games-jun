@@ -1,6 +1,9 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/proxy" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/proxy"
+    }
   ]
 }
